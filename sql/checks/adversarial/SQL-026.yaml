@@ -1,0 +1,32 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+assertions:
+  - name: "customer 40 has exactly 4 sessions in July 2025"
+    present: {customer_id: 40}
+    count: 4
+  - name: "customer 40 session 1: 10:00 .. 10:40 with 3 events (a gap of exactly 30:00 continues)"
+    row: {customer_id: 40, session_number: 1}
+    expect: {session_start: "2025-07-01T10:00:00+00:00", session_end: "2025-07-01T10:40:00+00:00", event_count: 3}
+  - name: "customer 40 session 2: 11:10:01 .. 11:20 with 3 events (gap 30:01 starts it; two events share 11:10:01)"
+    row: {customer_id: 40, session_number: 2}
+    expect: {session_start: "2025-07-01T11:10:01+00:00", session_end: "2025-07-01T11:20:00+00:00", event_count: 3}
+  - name: "customer 40 session 3 crosses midnight: 07-01 23:50 .. 07-02 00:05 with 2 events"
+    row: {customer_id: 40, session_number: 3}
+    expect: {session_start: "2025-07-01T23:50:00+00:00", session_end: "2025-07-02T00:05:00+00:00", event_count: 2}
+  - name: "customer 40 session 4: a single event at 07-03 09:00"
+    row: {customer_id: 40, session_number: 4}
+    expect: {session_start: "2025-07-03T09:00:00+00:00", session_end: "2025-07-03T09:00:00+00:00", event_count: 1}
+  - name: "anonymous events (NULL customer_id) are excluded"
+    absent: {customer_id: null}
+  - name: "every in-scope event is counted in exactly one session"
+    sql: >-
+      SELECT (SELECT sum(event_count) FROM ({student}) s)
+           = (SELECT count(*) FROM customer_events
+              WHERE customer_id IS NOT NULL
+                AND event_ts >= TIMESTAMPTZ '2025-07-01 00:00:00+00'
+                AND event_ts <  TIMESTAMPTZ '2025-08-01 00:00:00+00')
+  - name: "session numbers are 1..n per customer without gaps or duplicates"
+    sql: >-
+      SELECT bool_and(mx = cnt AND cnt = dist AND mn = 1)
+      FROM (SELECT customer_id, min(session_number) AS mn, max(session_number) AS mx,
+                   count(*) AS cnt, count(DISTINCT session_number) AS dist
+            FROM ({student}) s GROUP BY customer_id) x

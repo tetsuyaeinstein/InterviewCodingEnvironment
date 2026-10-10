@@ -1,0 +1,39 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+assertions:
+  - name: "txn 6601 (product 3 at 2025-03-01 11:59:59, one second before the change) uses list price 10.00"
+    row: {transaction_id: 6601, line_number: 1}
+    count: 1
+    expect: {list_price: 10.00, price_diff: 0.00}
+  - name: "txn 6602 (product 3 exactly at the 12:00:00 change) uses the NEW list price 12.00"
+    row: {transaction_id: 6602, line_number: 1}
+    count: 1
+    expect: {list_price: 12.00, price_diff: 0.00}
+  - name: "txn 6603 (manual override): charged 11.00 vs list 12.00, diff -1.00"
+    row: {transaction_id: 6603, line_number: 1}
+    expect: {unit_price: 11.00, list_price: 12.00, price_diff: -1.00}
+  - name: "txn 6605 (product 9 at 2025-06-15 08:29:59) uses 4.25"
+    row: {transaction_id: 6605, line_number: 1}
+    expect: {list_price: 4.25}
+  - name: "txn 6604 (product 9 exactly at 08:30:00) uses 4.50"
+    row: {transaction_id: 6604, line_number: 1}
+    expect: {list_price: 4.50}
+  - name: "product 7 (no price history): every in-scope line is returned, with NULL list_price and price_diff"
+    sql: >-
+      SELECT (SELECT count(*) FROM ({student}) s WHERE s.product_id = 7 AND s.list_price IS NULL AND s.price_diff IS NULL)
+           = (SELECT count(*) FROM transaction_items ti JOIN transactions t USING (transaction_id)
+              WHERE ti.product_id = 7 AND t.transaction_status = 'COMPLETED'
+                AND t.transaction_ts >= TIMESTAMPTZ '2025-01-01 00:00:00+00'
+                AND t.transaction_ts <  TIMESTAMPTZ '2025-07-01 00:00:00+00')
+         AND (SELECT count(*) FROM ({student}) s WHERE s.product_id = 7) > 0
+  - name: "product 1 changes price at midnight 2025-04-01: 18.00 before, 19.50 from 00:00:00 on"
+    sql: >-
+      SELECT count(*) > 0
+             AND bool_and(list_price = CASE WHEN transaction_ts < TIMESTAMPTZ '2025-04-01 00:00:00+00'
+                                            THEN 18.00 ELSE 19.50 END)
+      FROM ({student}) s WHERE s.product_id = 1
+  - name: "exactly one row per sales line (no fan-out from the history join)"
+    sql: "SELECT count(*) = count(DISTINCT (transaction_id, line_number)) FROM ({student}) s"
+  - name: "no lines of non-COMPLETED transactions"
+    sql: >-
+      SELECT count(*) = 0 FROM ({student}) s JOIN transactions t USING (transaction_id)
+      WHERE t.transaction_status <> 'COMPLETED'

@@ -392,10 +392,13 @@ def _indent(text: str, pad: str = "    ") -> str:
 # Adversarial assertions
 # ---------------------------------------------------------------------------
 def load_assertions(ex: Exercise) -> list[dict]:
+    """Hand-written assertions. An assertion with `profile: small` depends on the generated data of
+    the small seed and is skipped on other profiles (fixture-only assertions run everywhere)."""
     if not ex.adversarial_path.exists():
         return []
     data = yaml.safe_load(ex.adversarial_path.read_text(encoding="utf-8")) or {}
-    return list(data.get("assertions") or [])
+    profile = (current_seed() or {}).get("profile", "small")
+    return [a for a in (data.get("assertions") or []) if a.get("profile", profile) == profile]
 
 
 def _sql_assertions(conn, ex: Exercise, student_sql: str | None, decimals: int) -> list[str]:

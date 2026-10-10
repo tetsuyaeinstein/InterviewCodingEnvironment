@@ -1,0 +1,25 @@
+# Hand-written assertions (independent of the reference solution).
+# Customer 1001 is the heavy ENTERPRISE account (skew); December 2024 holds 26 of its rows, 2 of them not COMPLETED,
+# and (small seed) 3 completed ones on 2024-12-31 (the last day of the range, just before the year boundary).
+assertions:
+  - name: "every returned transaction belongs to customer 1001"
+    sql: "SELECT bool_and(t.customer_id = 1001) FROM ({student}) s JOIN transactions t ON t.transaction_id = s.transaction_id"
+  - name: "only COMPLETED transactions are on the statement (customer 1001 has 2 non-completed rows in December 2024)"
+    sql: "SELECT bool_and(t.transaction_status = 'COMPLETED') FROM ({student}) s JOIN transactions t ON t.transaction_id = s.transaction_id"
+  - name: "every row falls in December 2024 UTC"
+    sql: "SELECT bool_and((s.transaction_ts AT TIME ZONE 'UTC')::date BETWEEN DATE '2024-12-01' AND DATE '2024-12-31') FROM ({student}) s"
+  - name: "no completed December 2024 transaction of customer 1001 is missing"
+    sql: >-
+      SELECT count(*) = 0 FROM transactions t
+      WHERE t.customer_id = 1001 AND t.transaction_status = 'COMPLETED'
+        AND date_trunc('month', t.transaction_ts AT TIME ZONE 'UTC') = TIMESTAMP '2024-12-01'
+        AND t.transaction_id NOT IN (SELECT s.transaction_id FROM ({student}) s)
+  - name: "each transaction appears once"
+    sql: "SELECT count(*) = count(DISTINCT s.transaction_id) FROM ({student}) s"
+  - name: "gross_amount is returned unchanged"
+    sql: "SELECT bool_and(t.gross_amount = s.gross_amount) FROM ({student}) s JOIN transactions t ON t.transaction_id = s.transaction_id"
+  - name: "the completed purchases on the last day of the range (2024-12-31, after midnight) are included"
+    sql: >-
+      SELECT (SELECT count(*) FROM ({student}) s WHERE s.transaction_ts >= TIMESTAMPTZ '2024-12-31 00:00:00+00')
+           = (SELECT count(*) FROM transactions t WHERE t.customer_id = 1001 AND t.transaction_status = 'COMPLETED'
+                AND (t.transaction_ts AT TIME ZONE 'UTC')::date = DATE '2024-12-31')

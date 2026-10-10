@@ -1,0 +1,23 @@
+# Evaluated in the sandbox (txn_copy exists). Customer 1001 is the heavy account (skew).
+assertions:
+  - name: "exactly 20 rows (customer 1001 has more than 20 transactions in the quarter)"
+    sql: "SELECT count(*) = 20 FROM ({student}) s"
+  - name: "every row belongs to customer 1001"
+    sql: "SELECT bool_and(t.customer_id = 1001) FROM ({student}) s JOIN txn_copy t ON t.transaction_id = s.transaction_id"
+  - name: "every row is inside [2025-04-01, 2025-07-01) UTC"
+    sql: "SELECT bool_and(s.transaction_ts >= TIMESTAMPTZ '2025-04-01 00:00:00+00' AND s.transaction_ts < TIMESTAMPTZ '2025-07-01 00:00:00+00') FROM ({student}) s"
+  - name: "the 20 returned rows are the OLDEST 20 (no older row of the customer in the quarter was skipped)"
+    sql: >-
+      SELECT count(*) = 0 FROM txn_copy t
+      WHERE t.customer_id = 1001
+        AND t.transaction_ts >= TIMESTAMPTZ '2025-04-01 00:00:00+00' AND t.transaction_ts < (SELECT max(transaction_ts) FROM ({student}) m)
+        AND t.transaction_id NOT IN (SELECT transaction_id FROM ({student}) s2)
+  - name: "rows are returned oldest first"
+    sql: >-
+      SELECT bool_and(ok) FROM (SELECT s.transaction_ts >= lag(s.transaction_ts) OVER (ORDER BY s.transaction_ts) OR lag(s.transaction_ts) OVER (ORDER BY s.transaction_ts) IS NULL AS ok FROM ({student}) s) x
+  - name: "cancelled and pending transactions are not filtered out (all statuses count)"
+    sql: >-
+      SELECT (SELECT count(*) FROM ({student}) s JOIN txn_copy t ON t.transaction_id = s.transaction_id WHERE t.transaction_status <> 'COMPLETED')
+           = (SELECT count(*) FROM (SELECT transaction_status FROM txn_copy WHERE customer_id = 1001
+                 AND transaction_ts >= TIMESTAMPTZ '2025-04-01 00:00:00+00' AND transaction_ts < TIMESTAMPTZ '2025-07-01 00:00:00+00'
+                 ORDER BY transaction_ts LIMIT 20) o WHERE o.transaction_status <> 'COMPLETED')

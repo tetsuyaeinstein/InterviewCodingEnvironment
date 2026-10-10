@@ -10,3 +10,93 @@ exercises:
     functions: [fetch_customer_transactions]
     prerequisites: []
     tags: [psycopg, parameterized-sql, sql-injection, date-ranges]
+  - id: PY-042
+    title: Stream a large result set with a server-side cursor
+    difficulty: medium
+    estimated_minutes: 20
+    requires_database: true
+    requires_postgres: true
+    module: python/practice/05_database_integrations/PY-042.py
+    functions: [stream_transactions]
+    prerequisites: [PY-041]
+    tags: [psycopg, server-side-cursor, streaming, memory, generators, transactions]
+  - id: PY-043
+    title: Batched idempotent upserts with a stale-version guard
+    difficulty: medium
+    estimated_minutes: 30
+    requires_database: true
+    requires_postgres: true
+    module: python/practice/05_database_integrations/PY-043.py
+    functions: [load_batch, LoadResult]
+    prerequisites: [PY-041]
+    tags: [psycopg, upsert, on-conflict, idempotency, batching, transactions]
+  - id: PY-044
+    title: Keyset pagination with a stable composite cursor
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: true
+    requires_postgres: true
+    module: python/practice/05_database_integrations/PY-044.py
+    functions: [fetch_page]
+    prerequisites: [PY-041]
+    tags: [psycopg, pagination, keyset, cursor, ordering, ties]
+  - id: PY-045
+    title: Testable ETL runner with injected extract/transform/load
+    difficulty: medium
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/05_database_integrations/PY-045.py
+    functions: [run_etl, RunSummary, Quarantined]
+    prerequisites: []
+    tags: [etl, dependency-injection, batching, dead-letter, error-handling, idempotency]
+  - id: PY-046
+    title: Walk a paginated REST source (empty pages, repeats, loops)
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/05_database_integrations/PY-046.py
+    functions: [iterate_pages, PaginationLoopError, PaginationLimitError]
+    prerequisites: []
+    tags: [rest, pagination, generators, deduplication, loop-detection, fake-client]
+  - id: PY-047
+    title: Honour 429 Retry-After with injected clock and sleeper, plus a sliding-window limiter
+    difficulty: hard
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/05_database_integrations/PY-047.py
+    functions: [call_with_rate_limit, RateLimiter, RateLimited]
+    prerequisites: []
+    tags: [rate-limit, retry-after, backoff, injected-clock, sliding-window]
+  - id: PY-048
+    title: Bounded asyncio concurrency with ordered results and defined error policy
+    difficulty: hard
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/05_database_integrations/PY-048.py
+    functions: [gather_limited]
+    prerequisites: []
+    tags: [asyncio, concurrency, semaphore, cancellation, error-handling, backpressure]
+  - id: PY-049
+    title: Reconcile Python daily totals against PostgreSQL aggregates
+    difficulty: hard
+    estimated_minutes: 35
+    requires_database: true
+    requires_postgres: true
+    module: python/practice/05_database_integrations/PY-049.py
+    functions: [reconcile_daily_totals, ReconciliationReport, Mismatch]
+    prerequisites: [PY-041]
+    tags: [reconciliation, decimal, utc, timezones, aggregation, data-quality]
+  - id: PY-050
+    title: "Mini project: validate, dedupe, stage, summarise and reconcile a transaction feed"
+    difficulty: hard
+    estimated_minutes: 45
+    requires_database: true
+    requires_postgres: true
+    module: python/practice/05_database_integrations/PY-050.py
+    functions: [run_pipeline, RunReport, Rejection, ReconciliationError]
+    prerequisites: [PY-043, PY-045]
+    tags: [etl, ndjson, validation, idempotency, upsert, reconciliation, decimal, utc, transactions]

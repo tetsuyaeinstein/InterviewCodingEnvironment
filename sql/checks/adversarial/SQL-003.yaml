@@ -1,0 +1,25 @@
+# Hand-written, fixture-based assertions. Window = UTC dates 2025-10-03 ... 2025-12-31 inclusive.
+assertions:
+  - name: "customer 1 (never transacted) is in the audience with a NULL last purchase date"
+    row: {customer_id: 1}
+    expect: {last_completed_purchase_date: null}
+  - name: "customer 32 (no transactions) is in the audience with a NULL last purchase date"
+    row: {customer_id: 32}
+    expect: {last_completed_purchase_date: null}
+  - name: "customer 33 (only a CANCELLED transaction) is in the audience with a NULL last purchase date"
+    row: {customer_id: 33}
+    expect: {last_completed_purchase_date: null}
+  - name: "customer 35 (last purchase 2025-10-02 23:59:59, one second before the window) is in the audience, last date 2025-10-02"
+    row: {customer_id: 35}
+    expect: {last_completed_purchase_date: "2025-10-02"}
+  - name: "customer 36 (only a PENDING transaction in the window) is in the audience, last date 2025-06-01"
+    row: {customer_id: 36}
+    expect: {last_completed_purchase_date: "2025-06-01"}
+  - name: "customer 34 (purchase at exactly 2025-10-03 00:00:00) is active and not reported"
+    absent: {customer_id: 34}
+  - name: "customer 26 (completed purchases on 2025-10-05) is active and not reported"
+    absent: {customer_id: 26}
+  - name: "guest checkouts (NULL customer_id) are not reported"
+    absent: {customer_id: null}
+  - name: "each customer appears at most once"
+    sql: "SELECT count(*) = count(DISTINCT customer_id) FROM ({student}) s"

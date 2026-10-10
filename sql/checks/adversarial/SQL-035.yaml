@@ -1,0 +1,47 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+# New York midnights in UTC: 2024-12-30 05:00 (EST), 2025-01-06 05:00 (EST), 2025-03-03 05:00 (EST),
+# 2025-03-10 04:00 (EDT, after the 03-09 spring-forward), 2025-10-27 04:00 (EDT), 2025-11-03 05:00 (EST),
+# 2025-12-29 05:00 (EST).
+# Customer 9: purchases 2024-12-29 .. 2025-01-02 at 15:00 UTC; 12-30 and 12-31 belong to 2025-W01.
+# Customer 14: 2025-03-10 03:30 UTC = Sun 03-09 23:30 EDT (W10); 2025-11-03 04:30 UTC = Sun 11-02 23:30 EST (W44).
+assertions:
+  - name: "the week starting Monday 2024-12-30 is labelled 2025-W01 (ISO year, not calendar year)"
+    row: {iso_week: 2025-W01}
+    count: 1
+    expect: {week_start: 2024-12-30}
+  - name: "exactly 52 weeks, all labelled 2025-W01 .. 2025-W52 (no 2024-W.., W00 or W53)"
+    sql: >-
+      SELECT count(*) = 52 AND count(DISTINCT iso_week) = 52
+         AND bool_and(iso_week ~ '^2025-W(0[1-9]|[1-4][0-9]|5[0-2])$')
+         AND bool_and(extract(isodow FROM week_start) = 1)
+      FROM ({student}) s
+  - name: "2025-W01 counts purchases from Mon 2024-12-30 00:00 New York (05:00 UTC) on, incl. customer 9's Dec 30/31 purchases"
+    sql: >-
+      SELECT (SELECT purchases FROM ({student}) s WHERE s.iso_week = '2025-W01')
+           = (SELECT count(*) FROM transactions
+              WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                AND transaction_ts >= TIMESTAMPTZ '2024-12-30 05:00:00+00'
+                AND transaction_ts <  TIMESTAMPTZ '2025-01-06 05:00:00+00')
+  - name: "2025-W10 ends at New York midnight after the DST switch (2025-03-10 04:00 UTC): customer 14's 03:30 UTC sale is in W10"
+    sql: >-
+      SELECT (SELECT purchases FROM ({student}) s WHERE s.iso_week = '2025-W10')
+           = (SELECT count(*) FROM transactions
+              WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                AND transaction_ts >= TIMESTAMPTZ '2025-03-03 05:00:00+00'
+                AND transaction_ts <  TIMESTAMPTZ '2025-03-10 04:00:00+00')
+  - name: "2025-W44 runs to 2025-11-03 05:00 UTC (EST): customer 14's three Sunday 11-02 sales are in W44"
+    sql: >-
+      SELECT (SELECT purchases FROM ({student}) s WHERE s.iso_week = '2025-W44')
+           = (SELECT count(*) FROM transactions
+              WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                AND transaction_ts >= TIMESTAMPTZ '2025-10-27 04:00:00+00'
+                AND transaction_ts <  TIMESTAMPTZ '2025-11-03 05:00:00+00')
+  - name: "a customer buying several times in a week is counted once (active_customers <= purchases everywhere)"
+    sql: "SELECT bool_and(active_customers <= purchases) AND bool_or(active_customers < purchases) FROM ({student}) s"
+  - name: "total purchases over the 52 weeks match the New York fiscal-year window (no guests, completed only)"
+    sql: >-
+      SELECT (SELECT sum(purchases) FROM ({student}) s)
+           = (SELECT count(*) FROM transactions
+              WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                AND transaction_ts >= TIMESTAMPTZ '2024-12-30 05:00:00+00'
+                AND transaction_ts <  TIMESTAMPTZ '2025-12-29 05:00:00+00')

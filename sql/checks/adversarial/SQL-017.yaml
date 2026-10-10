@@ -1,0 +1,38 @@
+# Hand-written assertions. Cohort = registered 2023-12-01 UTC: fixture customers 1-70 (56 of them,
+# registered at midnight) plus generated customer 1601 (09:39 UTC) -> N = 57 -> equal tiers 15/14/14/14.
+assertions:
+  - name: "the cohort has 57 customers, each exactly once (incl. 1601, registered at 09:39 on launch day)"
+    profile: small
+    sql: "SELECT count(*) = 57 AND count(DISTINCT customer_id) = 57 FROM ({student}) s"
+  - name: "customer 1601 (registered later on 2023-12-01 UTC) is in the cohort"
+    profile: small
+    present: {customer_id: 1601}
+  - name: "customer 1075 (registered 2023-12-02 00:07 UTC) is not in the cohort"
+    absent: {customer_id: 1075}
+  - name: "customer 17 (650.00, highest spend) is tier 1 in both definitions"
+    row: {customer_id: 17}
+    expect: {spend_2025: 650.00, ntile_quartile: 1, tie_safe_quartile: 1}
+  - name: "140.00 tie (customers 4, 6, 11, 23) crosses the equal-size boundary: 4 and 6 -> tier 1, 11 and 23 -> tier 2"
+    profile: small
+    sql: "SELECT bool_and(CASE WHEN customer_id IN (4, 6) THEN ntile_quartile = 1 ELSE ntile_quartile = 2 END) AND count(*) = 4 FROM ({student}) s WHERE customer_id IN (4, 6, 11, 23)"
+  - name: "140.00 tie: all four customers share tie-safe tier 2 (the tie is pushed down, not up)"
+    sql: "SELECT bool_and(tie_safe_quartile = 2) AND count(*) = 4 FROM ({student}) s WHERE customer_id IN (4, 6, 11, 23)"
+  - name: "customer 1 (no transactions) has spend 0.00, equal-size tier 3 (first by id among 15 zero spenders), tie-safe tier 4"
+    profile: small
+    row: {customer_id: 1}
+    expect: {spend_2025: 0.00, ntile_quartile: 3, tie_safe_quartile: 4}
+  - name: "customer 33 (only a CANCELLED transaction) is included with spend 0.00, tier 4 in both definitions"
+    row: {customer_id: 33}
+    expect: {spend_2025: 0.00, ntile_quartile: 4, tie_safe_quartile: 4}
+  - name: "customer 10 (purchases only in 2024) has 2025 spend 0.00"
+    row: {customer_id: 10}
+    expect: {spend_2025: 0.00}
+  - name: "customer 26: only completed 2025 spend counts (30 + 10 + 20 = 60.00); 60.00 tie straddles -> equal-size 2, tie-safe 3"
+    profile: small
+    row: {customer_id: 26}
+    expect: {spend_2025: 60.00, ntile_quartile: 2, tie_safe_quartile: 3}
+  - name: "equal-size tiers have 15, 14, 14 and 14 members"
+    profile: small
+    sql: "SELECT array_agg(c ORDER BY q) = ARRAY[15, 14, 14, 14]::bigint[] FROM (SELECT ntile_quartile AS q, count(*) AS c FROM ({student}) s GROUP BY 1) x"
+  - name: "equal spend never means different tie-safe tiers"
+    sql: "SELECT count(*) = 0 FROM (SELECT spend_2025 FROM ({student}) s GROUP BY spend_2025 HAVING count(DISTINCT tie_safe_quartile) > 1) x"

@@ -1,0 +1,20 @@
+# Hand-written, fixture-based assertions (store 5, November 2025).
+assertions:
+  - name: "Coffee & Tea: 78.00 gross, 0.00 discount, 78.00 net, tied first (dense 1, rank 1)"
+    row: {category_name: "Coffee & Tea"}
+    expect: {gross_revenue: 78.00, discount_amount: 0.00, net_revenue: 78.00, revenue_dense_rank: 1, revenue_rank: 1}
+  - name: "Electronics Accessories: 78.00 net, tied first with Coffee & Tea (dense 1, rank 1)"
+    row: {category_name: "Electronics Accessories"}
+    expect: {net_revenue: 78.00, revenue_dense_rank: 1, revenue_rank: 1}
+  - name: "Kitchenware: 72.00 gross minus a 6.00 line discount = 66.00 net (dense 2, rank 3)"
+    row: {category_name: "Kitchenware"}
+    expect: {gross_revenue: 72.00, discount_amount: 6.00, net_revenue: 66.00, revenue_dense_rank: 2, revenue_rank: 3}
+  - name: "Stationery: two lines of the same product, 66.00 net, tied with Kitchenware (dense 2, rank 3)"
+    row: {category_name: "Stationery"}
+    expect: {gross_revenue: 66.00, net_revenue: 66.00, revenue_dense_rank: 2, revenue_rank: 3}
+  - name: "Snacks (60.00, third revenue level) is not returned"
+    absent: {category_name: "Snacks"}
+  - name: "the CANCELLED 300.00 Beverages order does not make Beverages a top category"
+    absent: {category_name: "Beverages"}
+  - name: "exactly 4 categories are returned"
+    sql: "SELECT count(*) = 4 FROM ({student}) s"

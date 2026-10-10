@@ -1,0 +1,27 @@
+# Hand-written, fixture-based assertions (fixture customers 1, 12, 22, 26, 33, 36, 64; guests).
+assertions:
+  - name: "customer 26: 2602 and 2603 share the latest timestamp -> exactly one row, transaction 2603 (20.00)"
+    row: {customer_id: 26}
+    count: 1
+    expect: {transaction_id: 2603, transaction_ts: "2025-10-05T18:00:00+00:00", store_id: 1, gross_amount: 20.00}
+  - name: "customer 26: the later PENDING transaction 2604 (99.00) is never chosen"
+    absent: {transaction_id: 2604}
+  - name: "customer 36: latest completed purchase is 3601 (2025-06-01), not the PENDING 3602 in December"
+    row: {customer_id: 36}
+    expect: {transaction_id: 3601}
+  - name: "customer 12: the PENDING 1206 and CANCELLED 1203 are ignored; latest completed is 1205 (07-14)"
+    row: {customer_id: 12}
+    expect: {transaction_id: 1205, gross_amount: 20.00}
+  - name: "customer 64: latest by event time is 6413 (2025-12-31 23:00), not the most recently ingested 6412"
+    row: {customer_id: 64}
+    expect: {transaction_id: 6413, gross_amount: 90.00}
+  - name: "customer 33 (only a CANCELLED transaction) is not returned"
+    absent: {customer_id: 33}
+  - name: "customer 1 (no transactions at all) is not returned"
+    absent: {customer_id: 1}
+  - name: "guest checkouts (NULL customer_id) are not returned"
+    absent: {customer_id: null}
+  - name: "exactly one row per customer"
+    sql: "SELECT count(*) = count(DISTINCT customer_id) FROM ({student}) s"
+  - name: "every customer with a completed purchase is present"
+    sql: "SELECT count(*) = (SELECT count(DISTINCT customer_id) FROM transactions WHERE transaction_status = 'COMPLETED') FROM ({student}) s"

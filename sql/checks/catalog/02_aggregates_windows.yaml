@@ -1,0 +1,140 @@
+topic: 02_aggregates_windows
+exercises:
+  - id: SQL-011
+    title: Latest completed transaction per customer with a deterministic tie-break
+    difficulty: easy
+    estimated_minutes: 12
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [customer_id, transaction_id, transaction_ts, store_id, gross_amount]
+    prerequisites: [SQL-001]
+    tags: [top-n-per-group, window-functions, ties, deduplication]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-012
+    title: Second-largest distinct transaction amount per store
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [store_id, highest_amount, second_highest_amount]
+    prerequisites: [SQL-011]
+    tags: [ranking, ties, window-functions, null-handling, nth-value]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-013
+    title: Seven-calendar-day rolling store revenue with zero days
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [store_id, business_date, daily_revenue, rolling_7d_revenue]
+    prerequisites: [SQL-002]
+    tags: [window-frames, calendar, generate-series, rolling-aggregates, dates]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-014
+    title: Running daily spend per customer
+    difficulty: easy
+    estimated_minutes: 12
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [customer_id, purchase_date, daily_spend, running_total]
+    prerequisites: [SQL-002]
+    tags: [running-total, window-functions, grain, dates]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-015
+    title: Month-over-month store revenue growth with empty months
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [store_id, month_start, revenue, prev_month_revenue, mom_change_pct]
+    prerequisites: [SQL-013]
+    tags: [lag, calendar, generate-series, division-by-zero, null-handling, rounding]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-016
+    title: First and latest purchase and time to first purchase
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [customers, transactions]
+    output: [customer_id, registration_date, first_purchase_date, last_purchase_date, completed_purchases, days_to_first_purchase]
+    prerequisites: [SQL-001]
+    tags: [outer-join, aggregation, first-value, dates, null-handling, retention]
+    check:
+      ordered: false
+
+  - id: SQL-017
+    title: Spending quartiles for the founding cohort with explicit tie rules
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [customers, transactions]
+    output: [customer_id, spend_2025, ntile_quartile, tie_safe_quartile]
+    prerequisites: [SQL-012]
+    tags: [ntile, cume-dist, ties, outer-join, window-functions, segmentation]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-018
+    title: Top three products per region with share of region revenue
+    difficulty: hard
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, transaction_items, stores, products]
+    output: [region, revenue_rank, product_id, product_name, net_revenue, pct_of_region_revenue]
+    prerequisites: [SQL-008, SQL-012]
+    tags: [top-n-per-group, ranking, ties, grain, fan-out, window-functions, lateral]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-019
+    title: Product share of store revenue without double counting
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, transaction_items]
+    output: [store_id, product_id, net_revenue, store_net_revenue, pct_of_store_revenue]
+    prerequisites: [SQL-005]
+    tags: [percent-of-total, window-functions, grain, fan-out, rounding]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-020
+    title: Ledger running balances and negative-balance flags
+    difficulty: hard
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [account_ledger]
+    output: [account_id, entry_id, posting_ts, signed_amount, running_balance, is_negative, enters_negative]
+    prerequisites: [SQL-014]
+    tags: [running-total, window-frames, ties, lag, recursive-cte, finance]
+    check:
+      ordered: false
+      decimals: 2

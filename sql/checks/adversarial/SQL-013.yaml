@@ -1,0 +1,31 @@
+# Hand-written, fixture-based assertions (fixture stores 4 and 5; see DATA_DICTIONARY "Fixture-only stores").
+assertions:
+  - name: "store 4, 2025-01-15 (first report day, no sale): the 01-12 sale before the period counts -> rolling 25.00"
+    row: {store_id: 4, business_date: "2025-01-15"}
+    expect: {daily_revenue: 0.00, rolling_7d_revenue: 25.00}
+  - name: "store 4, 2025-01-19: the 01-12 sale is exactly 7 days back and has left the window -> rolling 0.00"
+    row: {store_id: 4, business_date: "2025-01-19"}
+    expect: {daily_revenue: 0.00, rolling_7d_revenue: 0.00}
+  - name: "store 4, 2025-02-25: a day with no sales in its whole window is present with 0.00 / 0.00"
+    row: {store_id: 4, business_date: "2025-02-25"}
+    expect: {daily_revenue: 0.00, rolling_7d_revenue: 0.00}
+  - name: "store 4, 2025-03-03: sales on 03-01, 03-02, 03-03 -> rolling 75.00 (nothing in the preceding February week)"
+    row: {store_id: 4, business_date: "2025-03-03"}
+    expect: {daily_revenue: 25.00, rolling_7d_revenue: 75.00}
+  - name: "store 4, 2025-03-09: window 03-03 ... 03-09 holds only the 03-03 sale -> 25.00 (calendar days, not sale rows)"
+    row: {store_id: 4, business_date: "2025-03-09"}
+    expect: {rolling_7d_revenue: 25.00}
+  - name: "store 4, 2025-03-15: the CANCELLED basket that day is excluded -> daily 25.00"
+    row: {store_id: 4, business_date: "2025-03-15"}
+    expect: {daily_revenue: 25.00, rolling_7d_revenue: 25.00}
+  - name: "store 4, 2025-03-16: only a DECLINED basket -> daily 0.00, rolling still 25.00"
+    row: {store_id: 4, business_date: "2025-03-16"}
+    expect: {daily_revenue: 0.00, rolling_7d_revenue: 25.00}
+  - name: "store 5, 2025-11-10: window 11-04 ... 11-10 = 78.00 + 66.00 = 144.00 (the 11-03 sale has dropped out)"
+    row: {store_id: 5, business_date: "2025-11-10"}
+    expect: {daily_revenue: 66.00, rolling_7d_revenue: 144.00}
+  - name: "store 5, 2025-11-21: the CANCELLED 300.00 basket adds nothing -> daily 0.00, rolling 60.00"
+    row: {store_id: 5, business_date: "2025-11-21"}
+    expect: {daily_revenue: 0.00, rolling_7d_revenue: 60.00}
+  - name: "exactly one row per report day: 76 for store 4 and 37 for store 5, no NULL amounts"
+    sql: "SELECT count(*) FILTER (WHERE store_id = 4) = 76 AND count(*) FILTER (WHERE store_id = 5) = 37 AND count(*) = 113 AND count(DISTINCT (store_id, business_date)) = 113 AND count(*) FILTER (WHERE daily_revenue IS NULL OR rolling_7d_revenue IS NULL) = 0 FROM ({student}) s"

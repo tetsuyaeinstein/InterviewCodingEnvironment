@@ -1,0 +1,27 @@
+# Hand-written, fixture-based assertions. All fixture customers registered 2023-12-01 00:00 UTC.
+assertions:
+  - name: "customer 22: PENDING 01-31 ignored -> first 2025-02-01, last 2025-02-08, 2 purchases, 428 days (2024 is a leap year)"
+    row: {customer_id: 22}
+    expect: {registration_date: "2023-12-01", first_purchase_date: "2025-02-01", last_purchase_date: "2025-02-08", completed_purchases: 2, days_to_first_purchase: 428}
+  - name: "customer 26: the PENDING 10-06 transaction is not the latest purchase -> last 2025-10-05, 3 purchases"
+    row: {customer_id: 26}
+    expect: {first_purchase_date: "2025-09-01", last_purchase_date: "2025-10-05", completed_purchases: 3}
+  - name: "customer 36: the PENDING 12-20 transaction is ignored -> first = last = 2025-06-01"
+    row: {customer_id: 36}
+    expect: {first_purchase_date: "2025-06-01", last_purchase_date: "2025-06-01", completed_purchases: 1}
+  - name: "customer 14: first purchase 2025-03-10 03:30 UTC -> UTC date 2025-03-10, 465 days"
+    row: {customer_id: 14}
+    expect: {first_purchase_date: "2025-03-10", days_to_first_purchase: 465}
+  - name: "customer 10: first purchase 2024-02-26 -> 87 days after registration"
+    row: {customer_id: 10}
+    expect: {first_purchase_date: "2024-02-26", days_to_first_purchase: 87}
+  - name: "customer 1 (no transactions) is returned with NULL dates, 0 purchases, NULL days"
+    row: {customer_id: 1}
+    expect: {first_purchase_date: null, last_purchase_date: null, completed_purchases: 0, days_to_first_purchase: null}
+  - name: "customer 33 (only a CANCELLED transaction) is returned as a non-buyer"
+    row: {customer_id: 33}
+    expect: {first_purchase_date: null, completed_purchases: 0, days_to_first_purchase: null}
+  - name: "every customer appears exactly once"
+    sql: "SELECT count(*) = (SELECT count(*) FROM customers) AND count(DISTINCT customer_id) = count(*) FROM ({student}) s"
+  - name: "days are calendar-date differences, not elapsed 24-hour periods (registration late in the day)"
+    sql: "SELECT bool_and(s.days_to_first_purchase = s.first_purchase_date - s.registration_date) AND bool_and(s.registration_date = (c.registered_at AT TIME ZONE 'UTC')::date) FROM ({student}) s JOIN customers c ON c.customer_id = s.customer_id WHERE s.first_purchase_date IS NOT NULL"

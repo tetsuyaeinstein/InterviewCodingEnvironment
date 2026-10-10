@@ -1,0 +1,111 @@
+topic: 03_etl_file_processing
+exercises:
+  - id: PY-021
+    title: Streaming customer spend from a CSV export
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-021.py
+    functions: [spend_per_customer]
+    prerequisites: []
+    tags: [csv, streaming, decimal, aggregation, header-validation]
+
+  - id: PY-022
+    title: NDJSON reader with a quarantine for bad lines
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-022.py
+    functions: [read_ndjson, Rejected]
+    prerequisites: []
+    tags: [ndjson, json, quarantine, dead-letter, streaming, generators]
+
+  - id: PY-023
+    title: Normalise messy dates, numbers and nulls to a canonical schema
+    difficulty: medium
+    estimated_minutes: 35
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-023.py
+    functions: [normalise_rows, Column, FieldError]
+    prerequisites: []
+    tags: [parsing, dates, time-zones, decimal, nulls, schema, data-quality]
+
+  - id: PY-024
+    title: Resolve revisions and conflicts for duplicate business keys
+    difficulty: hard
+    estimated_minutes: 35
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-024.py
+    functions: [resolve_revisions, Conflict]
+    prerequisites: []
+    tags: [deduplication, cdc, revisions, determinism, conflicts]
+
+  - id: PY-025
+    title: Single-pass column profile for data-quality checks
+    difficulty: medium
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-025.py
+    functions: [profile_columns, ColumnProfile]
+    prerequisites: []
+    tags: [data-quality, profiling, single-pass, decimal, type-inference]
+
+  - id: PY-026
+    title: Atomic file-to-file transform (no partial outputs)
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-026.py
+    functions: [transform_file_atomically]
+    prerequisites: []
+    tags: [atomic-write, os-replace, fsync, cleanup, idempotency, windows]
+
+  - id: PY-027
+    title: Hive-style date partition paths for events
+    difficulty: easy
+    estimated_minutes: 15
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-027.py
+    functions: [partition_records]
+    prerequisites: []
+    tags: [partitioning, time-zones, object-storage, data-lake]
+
+  - id: PY-028
+    title: Reconcile two extracts with canonical row hashes
+    difficulty: hard
+    estimated_minutes: 40
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-028.py
+    functions: [canonical_row_hash, diff_streams, DiffResult]
+    prerequisites: [PY-024]
+    tags: [reconciliation, hashing, canonicalisation, sort-merge, data-quality]
+
+  - id: PY-029
+    title: Bounded-memory external merge sort of a CSV file
+    difficulty: hard
+    estimated_minutes: 45
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-029.py
+    functions: [external_sort_csv]
+    prerequisites: [PY-021, PY-026]
+    tags: [external-sort, heapq, k-way-merge, bounded-memory, temp-files, stability]
+
+  - id: PY-030
+    title: Incremental load with watermark, overlap window and dedup
+    difficulty: hard
+    estimated_minutes: 40
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/03_etl_file_processing/PY-030.py
+    functions: [select_incremental, WatermarkState, BatchResult]
+    prerequisites: [PY-024]
+    tags: [incremental-load, watermark, late-data, idempotency, state-management]

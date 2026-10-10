@@ -1,0 +1,69 @@
+{
+ "id": "SQL-040",
+ "generated_from": "SQL-040.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "month_start",
+   "category": "date"
+  },
+  {
+   "name": "orders",
+   "category": "number"
+  },
+  {
+   "name": "units_sold",
+   "category": "number"
+  },
+  {
+   "name": "gross_sales",
+   "category": "number"
+  },
+  {
+   "name": "refunded_amount",
+   "category": "number"
+  },
+  {
+   "name": "net_sales",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "2025-10-01",
+   "1645.00",
+   "5648.00",
+   "89979.00",
+   "2846.73",
+   "87132.27"
+  ],
+  [
+   "2025-11-01",
+   "1708.00",
+   "5753.00",
+   "92442.18",
+   "3160.51",
+   "89281.67"
+  ],
+  [
+   "2025-12-01",
+   "1815.00",
+   "6111.00",
+   "98235.80",
+   "4135.09",
+   "94100.71"
+  ],
+  [
+   "2026-01-01",
+   "0.00",
+   "0.00",
+   "0.00",
+   "1415.10",
+   "-1415.10"
+  ]
+ ]
+}

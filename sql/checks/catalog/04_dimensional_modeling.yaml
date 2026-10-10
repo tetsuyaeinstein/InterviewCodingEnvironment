@@ -1,0 +1,136 @@
+topic: 04_dimensional_modeling
+exercises:
+  - id: SQL-031
+    title: Customer region and segment as of each June sale
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, dim_customer_scd2, customers]
+    output: [transaction_id, customer_id, transaction_ts, region_at_purchase, segment_at_purchase, current_region]
+    prerequisites: [SQL-028]
+    tags: [scd2, point-in-time, temporal-join, half-open-intervals, left-join]
+    check:
+      ordered: false
+
+  - id: SQL-032
+    title: Data-quality audit of the customer SCD2 dimension
+    difficulty: medium
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [dim_customer_scd2]
+    output: [customer_id, issue_type, customer_sk, other_customer_sk, overlap_from, overlap_to]
+    prerequisites: [SQL-031]
+    tags: [scd2, data-quality, overlapping-intervals, self-join, half-open-intervals]
+    check:
+      ordered: false
+
+  - id: SQL-033
+    title: Sales with no matching customer version, and why
+    difficulty: hard
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, dim_customer_scd2]
+    output: [transaction_id, customer_id, transaction_ts, reason, previous_version_end, next_version_start]
+    prerequisites: [SQL-031]
+    tags: [scd2, anti-join, late-arriving-dimension, data-quality, half-open-intervals]
+    check:
+      ordered: false
+
+  - id: SQL-034
+    title: Daily account balance snapshot from the posting ledger
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: query
+    requires_database: true
+    tables: [accounts, account_ledger]
+    output: [account_id, balance_date, posting_count, net_change, closing_balance, lowest_balance]
+    prerequisites: [SQL-031]
+    tags: [periodic-snapshot, running-total, densification, semi-additive, carry-forward, calendar]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-035
+    title: Weekly active customers by ISO week in New York time
+    difficulty: easy
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [iso_week, week_start, active_customers, purchases]
+    prerequisites: []
+    tags: [date-dimension, iso-week, time-zones, dst, count-distinct]
+    check:
+      ordered: false
+
+  - id: SQL-036
+    title: Daily product availability snapshot from interval history
+    difficulty: medium
+    estimated_minutes: 30
+    validation_mode: modeling
+    requires_database: true
+    tables: [store_product_availability, products]
+    output: [snapshot_date, product_id, available_any_time, available_end_of_day, available_minutes]
+    prerequisites: [SQL-029]
+    tags: [factless-snapshot, interval-history, densification, half-open-intervals, modeling]
+    check:
+      ordered: false
+      decimals: 2
+      min_rationale_words: 30
+
+  - id: SQL-037
+    title: Products frequently bought together
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, transaction_items]
+    output: [product_a, product_b, co_occurrences]
+    prerequisites: [SQL-031]
+    tags: [market-basket, self-join, grain, count-distinct, bridge-table]
+    check:
+      ordered: false
+
+  - id: SQL-038
+    title: Monthly first-purchase cohorts with month-1 and month-2 repeat rates
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [cohort_month, cohort_size, month1_customers, month2_customers, month1_rate, month2_rate]
+    prerequisites: [SQL-025]
+    tags: [cohorts, retention, first-purchase, window-functions, censoring, conditional-aggregation]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-039
+    title: Monthly active customers by historical region
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, dim_customer_scd2]
+    output: [purchase_month, region, active_customers]
+    prerequisites: [SQL-031]
+    tags: [scd2, point-in-time, grain, count-distinct, null-handling]
+    check:
+      ordered: false
+
+  - id: SQL-040
+    title: Monthly net sales with partial refunds and units, without fan-out
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, transaction_items, refunds]
+    output: [month_start, orders, units_sold, gross_sales, refunded_amount, net_sales]
+    prerequisites: [SQL-031]
+    tags: [fan-out, multi-fact, revenue-recognition, refunds, aggregation-grain, conformed-month]
+    check:
+      ordered: false
+      decimals: 2

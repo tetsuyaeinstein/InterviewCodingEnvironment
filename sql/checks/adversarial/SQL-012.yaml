@@ -1,0 +1,22 @@
+# Hand-written, fixture-based assertions (fixture stores 4 and 5, 2025).
+assertions:
+  - name: "store 5: highest 78.00 (two baskets) and second-highest DISTINCT amount 66.00, not 78.00"
+    row: {store_id: 5}
+    expect: {highest_amount: 78.00, second_highest_amount: 66.00}
+  - name: "store 5: the CANCELLED 300.00 basket is not the highest amount"
+    absent: {store_id: 5, highest_amount: 300.00}
+  - name: "store 4: every completed basket is 25.00 -> highest 25.00, second-highest NULL"
+    row: {store_id: 4}
+    expect: {highest_amount: 25.00, second_highest_amount: null}
+  - name: "store 4: the CANCELLED 45.00 (customer 33) does not count as a distinct amount"
+    absent: {store_id: 4, highest_amount: 45.00}
+  - name: "store 4 (only one distinct amount) is still returned, exactly once"
+    present: {store_id: 4}
+    count: 1
+  - name: "one row per store with completed 2025 sales (40 stores)"
+    profile: small
+    sql: "SELECT count(*) = 40 AND count(DISTINCT store_id) = 40 FROM ({student}) s"
+  - name: "the second-highest amount is always strictly below the highest"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.second_highest_amount >= s.highest_amount"
+  - name: "non-completed baskets never set the highest amount (stores 13, 22, 29 have large non-completed baskets)"
+    sql: "SELECT bool_and(s.highest_amount = (SELECT max(t.gross_amount) FROM transactions t WHERE t.store_id = s.store_id AND t.transaction_status = 'COMPLETED' AND t.transaction_ts >= TIMESTAMPTZ '2025-01-01 00:00:00+00' AND t.transaction_ts < TIMESTAMPTZ '2026-01-01 00:00:00+00')) FROM ({student}) s WHERE s.store_id IN (13, 22, 29)"

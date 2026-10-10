@@ -1,0 +1,30 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+assertions:
+  - name: "customer 19 (purchases 02-01 and 02-08): retained on day 7 and in week 1"
+    row: {customer_id: 19}
+    count: 1
+    expect: {first_purchase_date: "2025-02-01", retained_day_7: true, retained_week_1: true}
+  - name: "customer 20 (purchases on day 3 and day 8): week 1 yes, day 7 no"
+    row: {customer_id: 20}
+    expect: {retained_day_7: false, retained_week_1: true}
+  - name: "customer 21 (02-01 23:50 then 02-08 00:10, only 6d 0h20m later) is day-7 retained by calendar date"
+    row: {customer_id: 21}
+    expect: {retained_day_7: true, retained_week_1: true}
+  - name: "customer 22 (PENDING on 01-31) is in the cohort with first purchase 02-01 and day-7 retained"
+    row: {customer_id: 22}
+    expect: {first_purchase_date: "2025-02-01", retained_day_7: true}
+  - name: "customer 53 (first purchase 02-28, next one on 03-01): week 1 yes, day 7 no"
+    row: {customer_id: 53}
+    expect: {first_purchase_date: "2025-02-28", retained_day_7: false, retained_week_1: true}
+  - name: "customer 28 (no repeat purchase in the week) is listed with false flags, not dropped"
+    row: {customer_id: 28}
+    expect: {retained_day_7: false, retained_week_1: false}
+  - name: "customer 8 (first purchase 2025-01-29, bought again in February) is not in the cohort"
+    absent: {customer_id: 8}
+  - name: "flags are never NULL, every first purchase is in February, day-7 implies week-1"
+    sql: >-
+      SELECT count(*) > 0
+             AND bool_and(retained_day_7 IS NOT NULL AND retained_week_1 IS NOT NULL)
+             AND bool_and(first_purchase_date BETWEEN DATE '2025-02-01' AND DATE '2025-02-28')
+             AND bool_and(NOT retained_day_7 OR retained_week_1)
+      FROM ({student}) s

@@ -1,0 +1,36 @@
+# Store 5 fixtures (Nov/Dec 2025): 6101 = p5 + p6; 6004 = p1 + p5 + p6; 6102 = p8 on two lines;
+# 6103 CANCELLED = p4 only.
+assertions:
+  - name: "pair (5, 6) occurs in exactly two baskets (6101 and 6004), once as (5, 6)"
+    row: {product_a: 5, product_b: 6}
+    count: 1
+    expect: {co_occurrences: 2}
+  - name: "the mirrored pair (6, 5) is never reported"
+    absent: {product_a: 6, product_b: 5}
+  - name: "product 8 (two lines in basket 6102) is never paired with itself"
+    absent: {product_a: 8, product_b: 8}
+  - name: "no row has product_a >= product_b"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.product_a >= s.product_b"
+  - name: "every row meets the minimum support of 2 and pairs are unique"
+    sql: >-
+      SELECT count(*) > 0 AND bool_and(co_occurrences >= 2)
+         AND count(*) = count(DISTINCT (product_a, product_b))
+      FROM ({student}) s
+  - name: "co_occurrences are counted per basket, not per line: pair (5, 6) via independent distinct count"
+    sql: >-
+      SELECT (SELECT co_occurrences FROM ({student}) s WHERE product_a = 5 AND product_b = 6)
+           = (SELECT count(DISTINCT a.transaction_id)
+              FROM transaction_items a
+              JOIN transaction_items b ON b.transaction_id = a.transaction_id
+              JOIN transactions t ON t.transaction_id = a.transaction_id
+              WHERE a.product_id = 5 AND b.product_id = 6 AND t.transaction_status = 'COMPLETED'
+                AND t.transaction_ts >= TIMESTAMPTZ '2025-11-01 00:00:00+00'
+                AND t.transaction_ts <  TIMESTAMPTZ '2026-01-01 00:00:00+00')
+  - name: "the cancelled basket 6103 (store 5) does not contribute: product 4 has no pair from it"
+    sql: >-
+      SELECT NOT EXISTS (SELECT 1 FROM ({student}) s WHERE (s.product_a = 4 OR s.product_b = 4)
+                         AND s.co_occurrences > (SELECT count(DISTINCT a.transaction_id)
+                              FROM transaction_items a JOIN transactions t USING (transaction_id)
+                              WHERE a.product_id = 4 AND t.transaction_status = 'COMPLETED'
+                                AND t.transaction_ts >= TIMESTAMPTZ '2025-11-01 00:00:00+00'
+                                AND t.transaction_ts <  TIMESTAMPTZ '2026-01-01 00:00:00+00'))

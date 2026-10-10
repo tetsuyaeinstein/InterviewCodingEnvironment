@@ -1,0 +1,75 @@
+{
+ "id": "SQL-019",
+ "generated_from": "SQL-019.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "store_id",
+   "category": "number"
+  },
+  {
+   "name": "product_id",
+   "category": "number"
+  },
+  {
+   "name": "net_revenue",
+   "category": "number"
+  },
+  {
+   "name": "store_net_revenue",
+   "category": "number"
+  },
+  {
+   "name": "pct_of_store_revenue",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "5.00",
+   "1.00",
+   "78.00",
+   "348.00",
+   "22.41"
+  ],
+  [
+   "5.00",
+   "2.00",
+   "66.00",
+   "348.00",
+   "18.97"
+  ],
+  [
+   "5.00",
+   "3.00",
+   "60.00",
+   "348.00",
+   "17.24"
+  ],
+  [
+   "5.00",
+   "5.00",
+   "18.00",
+   "348.00",
+   "5.17"
+  ],
+  [
+   "5.00",
+   "6.00",
+   "60.00",
+   "348.00",
+   "17.24"
+  ],
+  [
+   "5.00",
+   "8.00",
+   "66.00",
+   "348.00",
+   "18.97"
+  ]
+ ]
+}

@@ -1,0 +1,25 @@
+# Store 4 COMPLETED days in 2025-01..03: Jan 5, 12, 20; Feb 3, 14; Mar 1, 2, 3, 15 (9 days).
+# Also PENDING Feb 14, CANCELLED Mar 15, DECLINED Mar 16. 90 days in the calendar -> 81 sale-less days.
+assertions:
+  - name: "81 sale-less days (90 calendar days minus 9 days with a completed sale)"
+    sql: "SELECT count(*) = 81 AND count(DISTINCT sale_date) = 81 FROM ({student}) s"
+  - name: "2025-01-01, the first calendar day, is reported"
+    present: {sale_date: "2025-01-01"}
+  - name: "2025-03-31, the last calendar day, is reported"
+    present: {sale_date: "2025-03-31"}
+  - name: "2025-01-05 (completed sale) is not reported"
+    absent: {sale_date: "2025-01-05"}
+  - name: "2025-02-14 (completed + pending) is not reported"
+    absent: {sale_date: "2025-02-14"}
+  - name: "2025-03-15 (completed + cancelled) is not reported"
+    absent: {sale_date: "2025-03-15"}
+  - name: "2025-03-16 (only a DECLINED transaction) IS reported"
+    present: {sale_date: "2025-03-16"}
+  - name: "2025-01-01 was a Wednesday (ISO weekday 3)"
+    row: {sale_date: "2025-01-01"}
+    expect: {iso_weekday: 3}
+  - name: "2025-03-31 was a Monday (ISO weekday 1)"
+    row: {sale_date: "2025-03-31"}
+    expect: {iso_weekday: 1}
+  - name: "nothing outside 2025-01-01 .. 2025-03-31 is reported (no 2025-04-01, no 2024-12-31)"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.sale_date < DATE '2025-01-01' OR s.sale_date > DATE '2025-03-31'"

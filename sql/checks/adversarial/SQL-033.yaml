@@ -1,0 +1,30 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+# Customer 53: versions [2023-12-01, 2025-03-01) and [2025-04-01, 9999-12-31) -> gap in March 2025.
+#   txns 5301 02-28 23:59:59 (match), 5302 03-01 00:00:00 (gap), 5303 03-10 (gap), 5304 04-01 00:00:00 (match).
+# Customer 54: first version starts 2025-01-01; txns 5401 2024-12-31 23:59:59 (no version), 5402 2025-01-01 00:00:00 (match).
+assertions:
+  - name: "txn 5302 (customer 53, exactly 2025-03-01 00:00:00 when the first version ends) is a gap"
+    row: {transaction_id: 5302}
+    count: 1
+    expect: {customer_id: 53, reason: GAP_BETWEEN_VERSIONS,
+             previous_version_end: "2025-03-01T00:00:00+00:00", next_version_start: "2025-04-01T00:00:00+00:00"}
+  - name: "txn 5303 (customer 53, 2025-03-10, inside the March gap) is a gap, reported once"
+    row: {transaction_id: 5303}
+    count: 1
+    expect: {reason: GAP_BETWEEN_VERSIONS}
+  - name: "txn 5301 (customer 53, 2025-02-28 23:59:59, last second of the first version) matches and is not reported"
+    absent: {transaction_id: 5301}
+  - name: "txn 5304 (customer 53, exactly 2025-04-01 00:00:00 when the second version starts) matches"
+    absent: {transaction_id: 5304}
+  - name: "txn 5401 (customer 54, 2024-12-31 23:59:59, before the first version) is NO_VERSION_YET with no previous version"
+    row: {transaction_id: 5401}
+    count: 1
+    expect: {reason: NO_VERSION_YET, previous_version_end: null, next_version_start: "2025-01-01T00:00:00+00:00"}
+  - name: "txn 5402 (customer 54, exactly 2025-01-01 00:00:00) matches the first version"
+    absent: {transaction_id: 5402}
+  - name: "customer 50 (sales exactly at a version change) has no exceptions"
+    absent: {customer_id: 50}
+  - name: "generated customers (id >= 1000) always have a matching version"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.customer_id >= 1000"
+  - name: "guest checkouts are out of scope"
+    absent: {customer_id: null}

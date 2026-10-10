@@ -1,0 +1,36 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+assertions:
+  - name: "KIOSK-F01: 2025-01-10 and 01-11 form ONE 2-day gap"
+    row: {device_id: KIOSK-F01, gap_start: "2025-01-10"}
+    count: 1
+    expect: {gap_end: "2025-01-11", missing_days: 2}
+  - name: "KIOSK-F01: 2025-01-20 is a 1-day gap"
+    row: {device_id: KIOSK-F01, gap_start: "2025-01-20"}
+    expect: {gap_end: "2025-01-20", missing_days: 1}
+  - name: "KIOSK-F01 (decommissioned 2025-02-01) has exactly 2 gaps, nothing in February"
+    present: {device_id: KIOSK-F01}
+    count: 2
+  - name: "KIOSK-F02 (01-15 report received late, two reports on 01-22, decommissioned 02-01) has no gaps"
+    absent: {device_id: KIOSK-F02}
+  - name: "KIOSK-F03 (silent all February, decommissioned 2025-03-01): one gap 02-01 .. 02-28 of 28 days"
+    row: {device_id: KIOSK-F03}
+    count: 1
+    expect: {gap_start: "2025-02-01", gap_end: "2025-02-28", missing_days: 28}
+  - name: "KIOSK-0030 on 2025-01-30 has only a CHANGE event: still a missing day"
+    profile: small
+    row: {device_id: KIOSK-0030, gap_start: "2025-01-30"}
+    expect: {gap_end: "2025-01-30", missing_days: 1}
+  - name: "no gap day lies outside the period or outside the device's service window"
+    sql: >-
+      SELECT count(*) = 0
+      FROM ({student}) s JOIN devices d USING (device_id)
+      WHERE s.gap_start < greatest(d.installed_on, DATE '2025-01-01')
+         OR s.gap_end   > least(coalesce(d.decommissioned_on, DATE '2025-03-01'), DATE '2025-03-01') - 1
+  - name: "gaps are maximal (never overlap or touch) and missing_days = gap_end - gap_start + 1"
+    sql: >-
+      SELECT bool_and(s.missing_days = s.gap_end - s.gap_start + 1)
+             AND NOT EXISTS (SELECT 1 FROM ({student}) a JOIN ({student}) b
+                               ON a.device_id = b.device_id
+                              AND a.gap_start < b.gap_start
+                              AND b.gap_start <= a.gap_end + 1)
+      FROM ({student}) s

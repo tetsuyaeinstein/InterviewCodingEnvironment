@@ -1,0 +1,36 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+# Ledger accounts 1-5 (January 2025), see the fixture catalogue.
+assertions:
+  - name: "account 1 on 01-02: two debits at the same 09:00 (-30, -80) take the balance from 100 to -10"
+    row: {account_id: 1, balance_date: 2025-01-02}
+    count: 1
+    expect: {posting_count: 2, net_change: -110.00, closing_balance: -10.00, lowest_balance: -10.00}
+  - name: "account 1 on 01-03: +50 brings it to 40, but the day started at -10 (intraday low -10)"
+    row: {account_id: 1, balance_date: 2025-01-03}
+    expect: {closing_balance: 40.00, lowest_balance: -10.00}
+  - name: "account 1 on 01-04 (no postings) carries 40.00 forward"
+    row: {account_id: 1, balance_date: 2025-01-04}
+    count: 1
+    expect: {posting_count: 0, net_change: 0.00, closing_balance: 40.00, lowest_balance: 40.00}
+  - name: "account 1: the -5 fee posted at exactly 2025-01-05 00:00:00 belongs to 01-05, not 01-04"
+    row: {account_id: 1, balance_date: 2025-01-05}
+    expect: {posting_count: 1, closing_balance: 35.00}
+  - name: "account 2 on 01-04: 200 - 45.50 = 154.50, carried forward to 01-07"
+    row: {account_id: 2, balance_date: 2025-01-07}
+    expect: {closing_balance: 154.50}
+  - name: "account 3 on 01-02: -20 at 11:00 then +20 at 23:59:59 -> closes at 0.00 with an intraday low of -20.00"
+    row: {account_id: 3, balance_date: 2025-01-02}
+    expect: {posting_count: 2, closing_balance: 0.00, lowest_balance: -20.00}
+  - name: "account 4 (no postings ever) has 7 rows, all 0.00"
+    sql: >-
+      SELECT count(*) = 7 AND bool_and(closing_balance = 0 AND lowest_balance = 0 AND posting_count = 0)
+      FROM ({student}) s WHERE s.account_id = 4
+  - name: "account 5 on 01-01 (before its first posting) shows 0.00"
+    row: {account_id: 5, balance_date: 2025-01-01}
+    count: 1
+    expect: {closing_balance: 0.00, posting_count: 0}
+  - name: "account 5 on 01-03: entries 10 and 12 take 40.00 down to exactly 0.00"
+    row: {account_id: 5, balance_date: 2025-01-03}
+    expect: {net_change: -40.00, closing_balance: 0.00, lowest_balance: 0.00}
+  - name: "dense snapshot: exactly 35 rows, one per account and day"
+    sql: "SELECT count(*) = 35 AND count(DISTINCT (account_id, balance_date)) = 35 FROM ({student}) s"

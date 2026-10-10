@@ -1,0 +1,36 @@
+# Customer 67 events 101-111 (DATA_DICTIONARY): every JSON typing edge case.
+assertions:
+  - name: "11 rows: one per event of customer 67, none dropped because of a bad value"
+    sql: "SELECT count(*) = 11 AND count(DISTINCT event_id) = 11 FROM ({student}) s"
+  - name: "event 101 (amount as string '12.50', is_member true, ios) is typed correctly"
+    row: {event_id: 101}
+    expect: {amount: 12.50, is_member: true, device: ios, has_amount_issue: false}
+  - name: "event 102 (amount as JSON number 7.25, is_member false) is 7.25 / false"
+    row: {event_id: 102}
+    expect: {amount: 7.25, is_member: false, has_amount_issue: false}
+  - name: "event 103 ('N/A') gives NULL amount and reason INVALID, without an error"
+    row: {event_id: 103}
+    expect: {amount: null, has_amount_issue: true, amount_issue: INVALID}
+  - name: "event 104 (amount key missing) is MISSING"
+    row: {event_id: 104}
+    expect: {amount: null, has_amount_issue: true, amount_issue: MISSING}
+  - name: "event 105 (amount JSON null) is MISSING, and its duplicate items do not matter here"
+    row: {event_id: 105}
+    expect: {amount: null, has_amount_issue: true, amount_issue: MISSING}
+  - name: "event 106 (page_view without amount) has no amount issue and has_amount_issue is false, not NULL"
+    row: {event_id: 106}
+    expect: {has_amount_issue: false, amount_issue: null, device: ios}
+  - name: "event 107: '1e3' is the number 1000 and is_member 'yes' is NULL (not true), device missing is NULL"
+    row: {event_id: 107}
+    expect: {amount: 1000, is_member: null, device: null, has_amount_issue: false}
+  - name: "event 109 (promo_click, amount '-5.00') keeps -5.00 and is flagged NEGATIVE"
+    row: {event_id: 109}
+    expect: {amount: -5.00, has_amount_issue: true, amount_issue: NEGATIVE}
+  - name: "event 110 (items is an object, amount '19.99') is not affected by the items shape"
+    row: {event_id: 110}
+    expect: {amount: 19.99, device: web}
+  - name: "event 111 (' 42.10 ' with padding) is trimmed to 42.10"
+    row: {event_id: 111}
+    expect: {amount: 42.10, device: android, has_amount_issue: false}
+  - name: "has_amount_issue is never NULL"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.has_amount_issue IS NULL"

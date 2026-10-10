@@ -73,33 +73,35 @@ exercises build candidates in sandbox schemas.
 | `stores` | 40 | 120 | 300 |
 | `customers` | 2,056 | 20,056 | 100,056 |
 | `products` | 200 | 600 | 1,500 |
-| `transactions` | 21,257 | see `lab db status` | see `lab db status` |
-| `transaction_items` | 46,589 | | |
-| `refunds` | 1,420 | | |
-| `customer_events` | 30,154 | | |
-| `event_ingestion_log` | 30,590 | | |
-| `store_product_availability` | 48,080 | | |
-| `subscriptions` | 1,422 | | |
+| `product_categories` | 12 | 12 | 12 |
+| `product_price_history` | 375 | 1,171 | 2,882 |
+| `transactions` | 21,257 | 263,512 | 1,581,206 |
+| `transaction_items` | 46,589 | 579,733 | 3,479,385 |
+| `refunds` | 1,420 | 17,697 | 106,499 |
+| `customer_events` | 30,154 | 200,373 | 599,644 |
+| `event_ingestion_log` | 30,590 | 202,981 | 607,432 |
+| `store_product_availability` | 48,080 | 241,891 | 913,648 |
+| `subscriptions` | 1,422 | 14,393 | 71,432 |
 | `employees` | 300 | 300 | 300 |
-| `accounts` | 505 | | |
-| `account_ledger` | 40,603 | | |
-| `devices` | 63 | | |
-| `device_status_events` | 27,988 | | |
-| `device_downtime_incidents` | 1,177 | | |
-| `customer_daily_activity` | 17,091 | | |
-| `daily_store_snapshot` | 17,461 | | |
-| `dim_customer_scd2` | 3,068 | | |
-| `source_transactions` / `target_transactions` | 2,032 / 2,020 | | |
+| `accounts` | 505 | 3,005 | 10,005 |
+| `account_ledger` | 40,603 | 177,617 | 499,439 |
+| `devices` | 63 | 153 | 303 |
+| `device_status_events` | 27,988 | 70,419 | 140,742 |
+| `device_downtime_incidents` | 1,177 | 3,021 | 6,099 |
+| `customer_daily_activity` | 17,091 | 207,497 | 1,230,292 |
+| `daily_store_snapshot` | 17,461 | 17,461 | 17,461 |
+| `dim_customer_scd2` | 3,068 | 29,922 | 149,735 |
+| `source_transactions` | 2,032 | 24,900 | 151,257 |
+| `target_transactions` | 2,020 | 24,769 | 150,460 |
 | `cdc_transaction_events` | 3,797 | 3,797 | 3,797 |
-| `pipeline_runs` / `pipeline_watermarks` | 51 / 6 | 51 / 6 | 51 / 6 |
-| `raw_transaction_events` | 2,224 | | |
-| `stg_transaction_items` | 4,436 | | |
-| `fact_sales_partitioned` | 41,987 | | |
+| `pipeline_runs` | 51 | 51 | 51 |
+| `pipeline_watermarks` | 6 | 6 | 6 |
+| `raw_transaction_events` | 2,224 | 27,177 | 164,990 |
+| `stg_transaction_items` | 4,436 | 54,642 | 332,986 |
+| `fact_sales_partitioned` | 41,987 | 521,290 | 3,132,481 |
+| **all tables** | **347,004** | **2,708,566** | **13,454,400** |
 
-Small-profile checksum (seed version 1): `c5f7bde53a61d19fa891a461b2f61171`. `python -m lab db status`
-prints the live profile and checksum. The exact counts for every profile are stored in
-`lab_meta` (`SELECT meta_value->'row_counts' FROM lab_meta`). The medium/large columns are filled
-in by the QA run documented in the README.
+Checksums (seed version 1; `python -m lab db status` prints the live one): small `c5f7bde53a61d19fa891a461b2f61171`, medium `031ade0e7fa2437d7b66cbff0e10c5a4`, large `df3314b38eef0cb657cbd5379e09b89d`. Re-seeding any profile reproduces its checksum exactly. Timings measured on a Windows laptop with Docker Desktop: small about 8 s, medium about 75 s, large about 250 s (a few GB of disk). The exact counts for the live profile are in `lab_meta` (`SELECT meta_value->'row_counts' FROM lab_meta`).
 
 ## Fixture catalogue (hand-checkable edge cases)
 
@@ -196,8 +198,8 @@ Store 1 15:00 UTC is the same calendar date locally.
 
 | device | data | demonstrates |
 |---|---|---|
-| KIOSK-F01 | daily 02:00 reports except **01-10, 01-11, 01-20**. CHANGE events on 01-15: DOWN 08:00 (received 09:45, out of order), UP 09:30, DOWN 09:30, UP 10:00; and 01-16 12:00–12:30. Incidents: `[08:00, 09:30)` MONITORING, `[09:00, 10:00)` TECHNICIAN (overlap), `[10:00, 10:15)` VENDOR (touching), `[08:30, 08:45)` (nested), `[01-16 12:00, 12:30)` | missing scheduled reports; merging overlapping/touching intervals → 08:00–10:15 + 12:00–12:30 = **165 minutes** |
-| KIOSK-F02 | reports every day; the 01-15 report is received on 01-16; 01-22 has two reports. DOWN 01-20 23:30, DOWN again 23:45, UP 01-21 00:30. Two identical incidents `[01-20 23:30, 01-21 00:30)` | duplicate reports; outage across midnight; duplicate incidents (60 minutes total) |
+| KIOSK-F01 | `decommissioned_on` 2025-02-01; daily 02:00 reports except **01-10, 01-11, 01-20**. CHANGE events on 01-15: DOWN 08:00 (received 09:45, out of order), UP 09:30, DOWN 09:30, UP 10:00; and 01-16 12:00–12:30. Incidents: `[08:00, 09:30)` MONITORING, `[09:00, 10:00)` TECHNICIAN (overlap), `[10:00, 10:15)` VENDOR (touching), `[08:30, 08:45)` (nested), `[01-16 12:00, 12:30)` | missing scheduled reports; merging overlapping/touching intervals → 08:00–10:15 + 12:00–12:30 = **165 minutes** |
+| KIOSK-F02 | `decommissioned_on` 2025-02-01; reports every day; the 01-15 report is received on 01-16; 01-22 has two reports. DOWN 01-20 23:30, DOWN again 23:45, UP 01-21 00:30. Two identical incidents `[01-20 23:30, 01-21 00:30)` | duplicate reports; outage across midnight; duplicate incidents (60 minutes total) |
 | KIOSK-F03 | reports 01-01 … 01-31, `decommissioned_on` 2025-03-01, silent all of February | long reporting gap while still in service |
 
 ### CDC (`cdc_transaction_events`, source POS unless noted, commits 2025-12-31)

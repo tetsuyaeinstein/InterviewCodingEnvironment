@@ -1,0 +1,38 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+# Fixture customers are described in database/DATA_DICTIONARY.md.
+assertions:
+  - name: "customer 5 (two separate 5-day runs) has exactly two streak rows"
+    present: {customer_id: 5}
+    count: 2
+  - name: "customer 5: first streak is 2025-05-01 .. 2025-05-05 (5 days)"
+    row: {customer_id: 5, streak_start: "2025-05-01"}
+    expect: {streak_end: "2025-05-05", streak_days: 5}
+  - name: "customer 5: second streak is 2025-05-10 .. 2025-05-14 (5 days)"
+    row: {customer_id: 5, streak_start: "2025-05-10"}
+    expect: {streak_end: "2025-05-14", streak_days: 5}
+  - name: "customer 6 (several purchases on the same days) has one streak 2025-06-02 .. 06-05 of 4 days"
+    row: {customer_id: 6}
+    count: 1
+    expect: {streak_start: "2025-06-02", streak_end: "2025-06-05", streak_days: 4}
+  - name: "customer 11 (skipped day) has a 4-day streak 07-01 .. 07-04"
+    row: {customer_id: 11, streak_start: "2025-07-01"}
+    expect: {streak_end: "2025-07-04", streak_days: 4}
+  - name: "customer 11 (skipped day) has a 3-day streak 07-06 .. 07-08"
+    row: {customer_id: 11, streak_start: "2025-07-06"}
+    expect: {streak_end: "2025-07-08", streak_days: 3}
+  - name: "customer 9: the streak crosses the year end, 2024-12-29 .. 2025-01-02 (5 days)"
+    row: {customer_id: 9}
+    expect: {streak_start: "2024-12-29", streak_end: "2025-01-02", streak_days: 5}
+  - name: "customer 10: the streak crosses leap day, 2024-02-26 .. 2024-03-01 (5 days)"
+    row: {customer_id: 10}
+    expect: {streak_start: "2024-02-26", streak_end: "2024-03-01", streak_days: 5}
+  - name: "customer 12 (runs broken by a CANCELLED-only day are only 2 days long) is not reported"
+    absent: {customer_id: 12}
+  - name: "streaks of one customer never overlap or touch, and streak_days = end - start + 1"
+    sql: >-
+      SELECT bool_and(s.streak_days = s.streak_end - s.streak_start + 1)
+             AND NOT EXISTS (SELECT 1 FROM ({student}) a JOIN ({student}) b
+                               ON a.customer_id = b.customer_id
+                              AND a.streak_start < b.streak_start
+                              AND b.streak_start <= a.streak_end + 1)
+      FROM ({student}) s

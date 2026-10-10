@@ -1,0 +1,13 @@
+﻿txn_id,status,customer_id,note,amount
+T1,COMPLETED,C001,"coffee, large",4.50
+T2,COMPLETED,C002,"multi
+line note, with comma",10.10
+
+T3,PENDING,C001,,99.99
+T4,COMPLETED,C001,"said ""thanks""",0.20
+T5,COMPLETED,,guest checkout,7.00
+T6,completed ,C002,lowercase status,-2.10
+T7,REFUNDED,C003,,not-a-number
+T8,COMPLETED, C003 ,padded id,1.000
+T9,COMPLETED_REVERSED,C001,,50.00
+   

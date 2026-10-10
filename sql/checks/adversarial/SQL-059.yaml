@@ -1,0 +1,16 @@
+# December 2025 lines of fact_sales_partitioned (small seed: 3,969 lines over 39 stores).
+assertions:
+  - name: "grand total of lines equals the number of December 2025 lines in the fact table"
+    sql: "SELECT sum(line_count) = (SELECT count(*) FROM fact_sales_partitioned WHERE sale_date >= DATE '2025-12-01' AND sale_date < DATE '2026-01-01') FROM ({student}) s"
+  - name: "grand total of net_sales equals the December 2025 total"
+    sql: "SELECT sum(net_sales) = (SELECT sum(net_amount) FROM fact_sales_partitioned WHERE sale_date >= DATE '2025-12-01' AND sale_date < DATE '2026-01-01') FROM ({student}) s"
+  - name: "2025-12-31 (the last day) is included: a '< 2025-12-31' bound would lose its lines"
+    sql: "SELECT sum(line_count) = (SELECT count(*) FROM fact_sales_partitioned WHERE sale_date >= DATE '2025-12-01' AND sale_date <= DATE '2025-12-31') FROM ({student}) s"
+  - name: "no leakage from November: the line count is not larger than the December count"
+    sql: "SELECT sum(line_count) <= (SELECT count(*) FROM fact_sales_partitioned WHERE sale_date >= DATE '2025-12-01') FROM ({student}) s"
+  - name: "the online flagship store 6 is the biggest store and appears once"
+    sql: "SELECT (SELECT store_id FROM ({student}) a ORDER BY net_sales DESC LIMIT 1) = 6 AND (SELECT count(*) FROM ({student}) b WHERE store_id = 6) = 1"
+  - name: "one row per store"
+    sql: "SELECT count(*) = count(DISTINCT store_id) FROM ({student}) s"
+  - name: "no store has zero lines (stores without December sales are not listed)"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.line_count = 0"

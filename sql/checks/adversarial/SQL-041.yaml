@@ -1,0 +1,32 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+# CDC fixtures: database/DATA_DICTIONARY.md, section "CDC".
+assertions:
+  - name: "POS FX-0001: the newest commit (lsn 9000030, 60.00 COMPLETED) wins, not the event that arrived last (55.00)"
+    row: {source_system: POS, business_key: FX-0001}
+    expect: {source_lsn: 9000030, amount: 60.00, status: COMPLETED, cdc_event_id: 3773}
+  - name: "ECOM FX-0001 is a different transaction from POS FX-0001 (510.00)"
+    row: {source_system: ECOM, business_key: FX-0001}
+    expect: {amount: 510.00, source_lsn: 9000020}
+  - name: "POS FX-0002 stays deleted although a stale update arrived after the delete"
+    row: {source_system: POS, business_key: FX-0002}
+    expect: {is_deleted: true, last_operation: D, source_lsn: 9000120, amount: null, status: null}
+  - name: "POS FX-0003 was re-inserted after its delete (35.00, not deleted)"
+    row: {source_system: POS, business_key: FX-0003}
+    expect: {is_deleted: false, amount: 35.00, source_lsn: 9000230}
+  - name: "POS FX-0004: an identical duplicate delivery is not a conflict"
+    row: {source_system: POS, business_key: FX-0004}
+    expect: {has_lsn_conflict: false, amount: 40.00, status: COMPLETED}
+  - name: "POS FX-0005: equal commit_ts, the higher LSN (15.00) wins"
+    row: {source_system: POS, business_key: FX-0005}
+    expect: {amount: 15.00, source_lsn: 9000430}
+  - name: "POS FX-0006: two different versions share the top LSN; flagged, and the later arrival (80.00) is kept"
+    row: {source_system: POS, business_key: FX-0006}
+    expect: {has_lsn_conflict: true, amount: 80.00, cdc_event_id: 3790}
+  - name: "POS FX-0007 (delete for a key never inserted) is reported as deleted"
+    row: {source_system: POS, business_key: FX-0007}
+    expect: {is_deleted: true}
+  - name: "POS FX-0008: the update that arrived before its insert is still the current version (95.00)"
+    row: {source_system: POS, business_key: FX-0008}
+    expect: {amount: 95.00, last_operation: U}
+  - name: "every (source_system, business_key) appears exactly once"
+    sql: "SELECT count(*) = count(DISTINCT (source_system, business_key)) FROM ({student}) s"

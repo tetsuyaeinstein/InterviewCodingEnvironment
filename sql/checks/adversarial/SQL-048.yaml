@@ -1,0 +1,29 @@
+# Evaluated inside the sandbox after your script ran TWICE (mutation mode, runs: 2).
+# Pre-loaded summary: 2025-12-01..12-09 from an early load (12-08/12-09 incomplete) plus a stale
+# 2025-12-09 store 4 row. Batch: every delivery of business dates 2025-12-08..12-10.
+assertions:
+  - name: "the stale 2025-12-09 store 4 row (no sales in the restated batch) is removed"
+    absent: {sales_date: "2025-12-09", store_id: 4}
+  - name: "2025-12-08 store 15: its only sale (119493) ends CANCELLED in a later delivery, so the pre-loaded row is removed"
+    profile: small
+    absent: {sales_date: "2025-12-08", store_id: 15}
+  - name: "2025-12-08 store 29: one sale whose amount was corrected from 255.99 to 250.99 in a later delivery"
+    profile: small
+    row: {sales_date: "2025-12-08", store_id: 29}
+    expect: {txn_count: 1, gross_amount: 250.99}
+  - name: "2025-12-09 store 30: 119561 (180.56) was cancelled by a later delivery, 119575 (58.72) arrived late"
+    profile: small
+    row: {sales_date: "2025-12-09", store_id: 30}
+    expect: {txn_count: 1, gross_amount: 58.72}
+  - name: "restated dates 2025-12-08..12-10 total exactly 156 completed sales / 7,979.49 (no double counting after two runs)"
+    profile: small
+    sql: >-
+      SELECT sum(txn_count) = 156 AND sum(gross_amount) = 7979.49
+      FROM daily_store_sales WHERE sales_date BETWEEN DATE '2025-12-08' AND DATE '2025-12-10'
+  - name: "dates outside the batch (2025-12-01..12-07) are left exactly as loaded: 183 rows, 384 sales, 20,135.02"
+    profile: small
+    sql: >-
+      SELECT count(*) = 183 AND sum(txn_count) = 384 AND sum(gross_amount) = 20135.02
+      FROM daily_store_sales WHERE sales_date < DATE '2025-12-08'
+  - name: "no summary row with zero or negative sales, and nothing after 2025-12-10"
+    sql: "SELECT NOT EXISTS (SELECT 1 FROM daily_store_sales WHERE txn_count <= 0 OR gross_amount < 0 OR sales_date > DATE '2025-12-10')"

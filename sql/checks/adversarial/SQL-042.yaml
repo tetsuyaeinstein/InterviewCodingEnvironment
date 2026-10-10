@@ -1,0 +1,27 @@
+# Customer 64 ingestion fixtures (all POS, store 1): ingested 05:49:59, 05:50:00, 05:59:59,
+# 06:00:00, 06:30:00, 07:00:00 on 2025-12-15. Watermark POS = 06:00, overlap 10 min, high mark 07:00.
+assertions:
+  - name: "6401 (ingested 05:49:59, one second before the overlap starts) is not read"
+    absent: {transaction_id: 6401}
+  - name: "6402 (ingested exactly at watermark - 10 min) is read as an overlap re-read"
+    row: {transaction_id: 6402}
+    expect: {is_overlap_reread: true}
+  - name: "6403 (05:59:59) is read as an overlap re-read"
+    row: {transaction_id: 6403}
+    expect: {is_overlap_reread: true}
+  - name: "6404 (ingested exactly at the watermark) is new data, not an overlap re-read"
+    row: {transaction_id: 6404}
+    expect: {is_overlap_reread: false}
+  - name: "6405 (06:30) is read"
+    present: {transaction_id: 6405}
+    count: 1
+  - name: "6406 (ingested exactly at the high mark 07:00) belongs to the next run"
+    absent: {transaction_id: 6406}
+  - name: "every row is a POS transaction ingested in [05:50, 07:00) UTC"
+    sql: >-
+      SELECT bool_and(t.source_system = 'POS'
+                      AND t.ingested_at >= '2025-12-15 05:50:00+00'
+                      AND t.ingested_at <  '2025-12-15 07:00:00+00')
+      FROM ({student}) s JOIN transactions t USING (transaction_id)
+  - name: "each transaction appears once"
+    sql: "SELECT count(*) = count(DISTINCT transaction_id) FROM ({student}) s"

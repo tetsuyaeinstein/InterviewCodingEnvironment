@@ -1,0 +1,21 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+assertions:
+  - name: "customer 15 (daily totals 120, 110 = 60 + 50, 101, 150, 100.01) qualifies with 2025-09-01 .. 09-05"
+    row: {customer_id: 15}
+    count: 1
+    expect: {run_start: "2025-09-01", run_end: "2025-09-05", run_days: 5}
+  - name: "customer 18 (every purchase below 100 but 105.00 per day for 6 days) qualifies with the full 6-day run"
+    row: {customer_id: 18}
+    count: 1
+    expect: {run_start: "2025-09-10", run_end: "2025-09-15", run_days: 6}
+  - name: "customer 16 (a day of exactly 100.00) does not qualify"
+    absent: {customer_id: 16}
+  - name: "customer 17 (09-03 = 150 CANCELLED + 50 completed) does not qualify"
+    absent: {customer_id: 17}
+  - name: "customers with plain purchase streaks of small purchases (3, 4, 5, 7, 8, 9, 10) do not qualify"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.customer_id IN (3, 4, 5, 7, 8, 9, 10)"
+  - name: "one row per customer; run_days >= 5 and = run_end - run_start + 1"
+    sql: >-
+      SELECT count(*) = count(DISTINCT customer_id)
+             AND bool_and(run_days >= 5 AND run_days = run_end - run_start + 1)
+      FROM ({student}) s

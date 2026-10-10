@@ -1,0 +1,85 @@
+{
+ "id": "SQL-043",
+ "generated_from": "SQL-043.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "business_date",
+   "category": "date"
+  },
+  {
+   "name": "late_txn_count",
+   "category": "number"
+  },
+  {
+   "name": "late_amount",
+   "category": "number"
+  },
+  {
+   "name": "reported_amount",
+   "category": "number"
+  },
+  {
+   "name": "final_amount",
+   "category": "number"
+  },
+  {
+   "name": "late_pct",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "2025-12-24",
+   "2.00",
+   "94.74",
+   "4724.74",
+   "4819.48",
+   "1.97"
+  ],
+  [
+   "2025-12-31",
+   "6.00",
+   "269.93",
+   "1749.19",
+   "2019.12",
+   "13.37"
+  ],
+  [
+   "2025-12-29",
+   "3.00",
+   "67.42",
+   "2859.55",
+   "2926.97",
+   "2.30"
+  ],
+  [
+   "2025-12-25",
+   "1.00",
+   "105.19",
+   "2583.13",
+   "2688.32",
+   "3.91"
+  ],
+  [
+   "2025-12-28",
+   "1.00",
+   "80.00",
+   "2936.34",
+   "3016.34",
+   "2.65"
+  ],
+  [
+   "2025-12-30",
+   "3.00",
+   "19.08",
+   "2583.28",
+   "2602.36",
+   "0.73"
+  ]
+ ]
+}

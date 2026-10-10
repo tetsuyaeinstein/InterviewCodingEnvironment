@@ -1,0 +1,36 @@
+# Hand-written assertions. Fixture customer 53 bought at store 1 on 2025-02-28 23:59:59 (txn 5301, 40.00)
+# and at 2025-03-01 00:00:00 (txn 5302, 40.00): the day boundary in both directions.
+# The oracles below use the slow-but-obviously-correct calendar-date form of the filter.
+assertions:
+  - name: "store 1 counts the 23:59:59 purchase (txn 5301) but not the one at exactly 2025-03-01 00:00:00 (txn 5302)"
+    sql: >-
+      SELECT s.completed_txns = (SELECT count(*) FROM transactions t
+                                 WHERE t.store_id = 1 AND t.transaction_status = 'COMPLETED'
+                                   AND (t.transaction_ts AT TIME ZONE 'UTC')::date = DATE '2025-02-28')
+      FROM ({student}) s WHERE s.store_id = 1
+  - name: "store 1 gross_sales includes 40.00 from txn 5301 and nothing from txn 5302"
+    sql: >-
+      SELECT s.gross_sales = (SELECT sum(t.gross_amount) FROM transactions t
+                              WHERE t.store_id = 1 AND t.transaction_status = 'COMPLETED'
+                                AND (t.transaction_ts AT TIME ZONE 'UTC')::date = DATE '2025-02-28')
+      FROM ({student}) s WHERE s.store_id = 1
+  - name: "stores whose only transactions that day were not COMPLETED are not listed"
+    sql: >-
+      SELECT count(*) = 0 FROM ({student}) s
+      WHERE NOT EXISTS (SELECT 1 FROM transactions t
+                        WHERE t.store_id = s.store_id AND t.transaction_status = 'COMPLETED'
+                          AND (t.transaction_ts AT TIME ZONE 'UTC')::date = DATE '2025-02-28')
+  - name: "every store with a completed sale on the UTC day is listed"
+    sql: >-
+      SELECT count(*) = 0 FROM (SELECT DISTINCT t.store_id FROM transactions t
+                                WHERE t.transaction_status = 'COMPLETED'
+                                  AND (t.transaction_ts AT TIME ZONE 'UTC')::date = DATE '2025-02-28') d
+      WHERE d.store_id NOT IN (SELECT s.store_id FROM ({student}) s)
+  - name: "the grand total equals the original calendar-date filter's total"
+    sql: >-
+      SELECT (SELECT sum(s.gross_sales) FROM ({student}) s)
+           = (SELECT sum(t.gross_amount) FROM transactions t
+              WHERE t.transaction_status = 'COMPLETED'
+                AND (t.transaction_ts AT TIME ZONE 'UTC')::date = DATE '2025-02-28')
+  - name: "each store appears once"
+    sql: "SELECT count(*) = count(DISTINCT s.store_id) FROM ({student}) s"

@@ -1,0 +1,25 @@
+# Hand-written assertions. Region = region of the STORE (store 5 is EAST). Independent re-computation
+# of the region totals uses line columns only.
+assertions:
+  - name: "EAST: product 35 is rank 1 with 10215.32 net revenue"
+    profile: small
+    row: {region: EAST, product_id: 35}
+    expect: {revenue_rank: 1, net_revenue: 10215.32, pct_of_region_revenue: 3.38}
+  - name: "WEST: product 188 is rank 1 with 6376.73 net revenue (4.00 % of the region)"
+    profile: small
+    row: {region: WEST, product_id: 188}
+    expect: {revenue_rank: 1, net_revenue: 6376.73, pct_of_region_revenue: 4.00}
+  - name: "NORTH: product 104 is rank 3"
+    profile: small
+    row: {region: NORTH, product_id: 104}
+    expect: {revenue_rank: 3}
+  - name: "each product appears at most once per region"
+    sql: "SELECT count(*) = count(DISTINCT (region, product_id)) FROM ({student}) s"
+  - name: "four regions are reported, each with at least three products"
+    sql: "SELECT count(DISTINCT region) = 4 AND min(c) >= 3 FROM (SELECT region, count(*) c FROM ({student}) s GROUP BY region) x"
+  - name: "the percentage is relative to ALL products of the region, not the top three (EAST total is 302,493.35 excl. non-completed)"
+    sql: "SELECT bool_and(abs(s.net_revenue / (SELECT sum(i.quantity*i.unit_price - i.discount_amount) FROM transactions t JOIN transaction_items i ON i.transaction_id = t.transaction_id JOIN stores st ON st.store_id = t.store_id WHERE st.region = s.region AND t.transaction_status = 'COMPLETED' AND t.transaction_ts >= TIMESTAMPTZ '2025-01-01 00:00:00+00' AND t.transaction_ts < TIMESTAMPTZ '2026-01-01 00:00:00+00') * 100 - s.pct_of_region_revenue) < 0.006) FROM ({student}) s"
+  - name: "net revenue is built from line amounts after discounts (no header gross_amount fan-out)"
+    sql: "SELECT bool_and(s.net_revenue = (SELECT sum(i.quantity*i.unit_price - i.discount_amount) FROM transactions t JOIN transaction_items i ON i.transaction_id = t.transaction_id JOIN stores st ON st.store_id = t.store_id WHERE st.region = s.region AND i.product_id = s.product_id AND t.transaction_status = 'COMPLETED' AND t.transaction_ts >= TIMESTAMPTZ '2025-01-01 00:00:00+00' AND t.transaction_ts < TIMESTAMPTZ '2026-01-01 00:00:00+00')) FROM ({student}) s"
+  - name: "ranks are competition ranks: rank 1 exists in every region and no rank exceeds 3"
+    sql: "SELECT count(*) FILTER (WHERE revenue_rank = 1) >= 4 AND max(revenue_rank) <= 3 FROM ({student}) s"

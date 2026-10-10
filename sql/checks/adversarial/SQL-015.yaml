@@ -1,0 +1,29 @@
+# Hand-written, fixture-based assertions (fixture stores 4 and 5, 2025).
+# Store 4 completed revenue: Jan 75, Feb 50, Mar 100, Apr 0, May 50, Jun-Dec 0.
+# Store 5 completed revenue: Nov 348.00 (CANCELLED 300.00 excluded), Dec 58.50.
+assertions:
+  - name: "store 4, Feb 2025: compared with January (outside the report) 75.00 -> -33.33"
+    row: {store_id: 4, month_start: "2025-02-01"}
+    expect: {revenue: 50.00, prev_month_revenue: 75.00, mom_change_pct: -33.33}
+  - name: "store 4, Mar 2025: 100.00 vs 50.00 -> +100.00 (the 03-15 CANCELLED and 03-16 DECLINED do not count)"
+    row: {store_id: 4, month_start: "2025-03-01"}
+    expect: {revenue: 100.00, prev_month_revenue: 50.00, mom_change_pct: 100.00}
+  - name: "store 4, Apr 2025: a month with no completed sales is present with 0.00 and -100.00"
+    row: {store_id: 4, month_start: "2025-04-01"}
+    expect: {revenue: 0.00, prev_month_revenue: 100.00, mom_change_pct: -100.00}
+  - name: "store 4, May 2025: previous month is 0.00 -> percentage NULL, no error"
+    row: {store_id: 4, month_start: "2025-05-01"}
+    expect: {revenue: 50.00, prev_month_revenue: 0.00, mom_change_pct: null}
+  - name: "store 4, Jul 2025: 0.00 after 0.00 -> percentage NULL (not 0)"
+    row: {store_id: 4, month_start: "2025-07-01"}
+    expect: {revenue: 0.00, prev_month_revenue: 0.00, mom_change_pct: null}
+  - name: "store 5, Nov 2025: 348.00 after an empty October -> NULL percentage"
+    row: {store_id: 5, month_start: "2025-11-01"}
+    expect: {revenue: 348.00, prev_month_revenue: 0.00, mom_change_pct: null}
+  - name: "store 5, Dec 2025: 58.50 vs 348.00 -> -83.19"
+    row: {store_id: 5, month_start: "2025-12-01"}
+    expect: {revenue: 58.50, prev_month_revenue: 348.00, mom_change_pct: -83.19}
+  - name: "January 2025 (lookback month) is not part of the report"
+    absent: {month_start: "2025-01-01"}
+  - name: "22 rows (2 stores x 11 months), no NULL revenue or previous revenue"
+    sql: "SELECT count(*) = 22 AND count(DISTINCT (store_id, month_start)) = 22 AND count(*) FILTER (WHERE revenue IS NULL OR prev_month_revenue IS NULL) = 0 FROM ({student}) s"

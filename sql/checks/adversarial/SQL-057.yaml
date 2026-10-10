@@ -1,0 +1,30 @@
+# Checkout events on 2025-08-15 (customer 67 fixtures 101-111 + three generated checkouts).
+assertions:
+  - name: "event 101: two different skus, one row each (SKU-00001 qty 2, SKU-00003 qty 1)"
+    sql: "SELECT count(*) = 2 AND bool_and((sku = 'SKU-00001' AND total_qty = 2) OR (sku = 'SKU-00003' AND total_qty = 1)) FROM ({student}) s WHERE event_id = 101"
+  - name: "event 105: the same sku twice (1 + 1) is ONE row with total_qty 2"
+    row: {event_id: 105, sku: SKU-00001}
+    expect: {total_qty: 2}
+    count: 1
+  - name: "event 105 has exactly one row"
+    sql: "SELECT count(*) = 1 FROM ({student}) s WHERE event_id = 105"
+  - name: "event 102 (empty items array) produces no rows"
+    absent: {event_id: 102}
+  - name: "event 103 (qty 'two') is dropped, not 0 and not an error"
+    absent: {event_id: 103}
+  - name: "event 104 (items is JSON null) produces no rows"
+    absent: {event_id: 104}
+  - name: "event 107 (qty 3 of SKU-00005) is kept"
+    row: {event_id: 107, sku: SKU-00005}
+    expect: {total_qty: 3}
+  - name: "event 110: items is an OBJECT and is treated as one line (SKU-00006 x 1) without crashing"
+    row: {event_id: 110, sku: SKU-00006}
+    expect: {total_qty: 1}
+  - name: "event 111: the line with a null sku is dropped, SKU-00008 x 10 is kept (exactly one row)"
+    sql: "SELECT count(*) = 1 AND bool_and(sku = 'SKU-00008' AND total_qty = 10) FROM ({student}) s WHERE event_id = 111"
+  - name: "non-checkout events of customer 67 (106, 108, 109) never appear"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE event_id IN (106, 108, 109)"
+  - name: "no NULL sku and no non-positive quantity in the output"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE sku IS NULL OR total_qty IS NULL OR total_qty <= 0"
+  - name: "output is unique per (event, sku)"
+    sql: "SELECT count(*) = count(DISTINCT (event_id, sku)) FROM ({student}) s"

@@ -1,0 +1,15 @@
+# Hand-written, fixture-based assertions. A = product 1, B = product 2, period [2025-01-01, 2025-07-01).
+assertions:
+  - name: "customer 28 (bought A; B only in a CANCELLED transaction) qualifies, exactly once"
+    present: {customer_id: 28}
+    count: 1
+  - name: "customer 30 (bought A; B only on 2025-08-01, after the period) qualifies"
+    present: {customer_id: 30}
+  - name: "customer 29 (A and B in the same transaction) does not qualify"
+    absent: {customer_id: 29}
+  - name: "customer 31 (A only in a CANCELLED transaction) does not qualify"
+    absent: {customer_id: 31}
+  - name: "guest checkouts (NULL customer_id) are not reported"
+    absent: {customer_id: null}
+  - name: "each customer appears exactly once"
+    sql: "SELECT count(*) = count(DISTINCT customer_id) FROM ({student}) s"

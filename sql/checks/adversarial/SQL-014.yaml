@@ -1,0 +1,28 @@
+# Hand-written, fixture-based assertions (fixture customers 15-18 and 23-26, Sep-Oct 2025).
+assertions:
+  - name: "customer 15, 2025-09-02: two purchases (60 + 50) -> one row, daily 110.00, running 230.00"
+    row: {customer_id: 15, purchase_date: "2025-09-02"}
+    count: 1
+    expect: {daily_spend: 110.00, running_total: 230.00}
+  - name: "customer 15, 2025-09-05: running total 581.01 (120 + 110 + 101 + 150 + 100.01)"
+    row: {customer_id: 15, purchase_date: "2025-09-05"}
+    expect: {daily_spend: 100.01, running_total: 581.01}
+  - name: "customer 17, 2025-09-03: daily 50.00 (the CANCELLED 150.00 is excluded), running 350.00 for this customer alone"
+    row: {customer_id: 17, purchase_date: "2025-09-03"}
+    expect: {daily_spend: 50.00, running_total: 350.00}
+  - name: "customer 18: six purchase days of 105.00 each, final running total 630.00"
+    row: {customer_id: 18, purchase_date: "2025-09-15"}
+    expect: {daily_spend: 105.00, running_total: 630.00}
+  - name: "customer 26, 2025-10-05: 2602 and 2603 at the same timestamp -> one row, daily 30.00, running 60.00"
+    row: {customer_id: 26, purchase_date: "2025-10-05"}
+    count: 1
+    expect: {daily_spend: 30.00, running_total: 60.00}
+  - name: "customer 26, 2025-10-06: only a PENDING transaction -> no row"
+    absent: {customer_id: 26, purchase_date: "2025-10-06"}
+  - name: "customer 23 (first purchase day in the period) starts its own running total at 100.00"
+    row: {customer_id: 23, purchase_date: "2025-10-10"}
+    expect: {daily_spend: 100.00, running_total: 100.00}
+  - name: "customers 19-22 (no purchases in Sep-Oct 2025) are not returned"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.customer_id BETWEEN 19 AND 22"
+  - name: "exactly one row per customer per purchase day (27 rows)"
+    sql: "SELECT count(*) = 27 AND count(DISTINCT (customer_id, purchase_date)) = 27 FROM ({student}) s"

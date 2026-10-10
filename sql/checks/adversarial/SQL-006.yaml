@@ -1,0 +1,14 @@
+# Hand-written, fixture-based assertions. Stores 4 and 5 are fixture-only.
+assertions:
+  - name: "store 4: 17 transactions = 11 completed (275.00) + 2 pending (50.00) + 3 cancelled (95.00) + 1 declined"
+    row: {store_id: 4}
+    expect: {total_txn_count: 17, completed_count: 11, completed_amount: 275.00, pending_count: 2, pending_amount: 50.00, cancelled_count: 3, cancelled_amount: 95.00, declined_count: 1}
+  - name: "store 5: no pending or declined transactions -> 0 and 0.00, not NULL"
+    row: {store_id: 5}
+    expect: {total_txn_count: 7, completed_count: 6, completed_amount: 406.50, pending_count: 0, pending_amount: 0.00, cancelled_count: 1, cancelled_amount: 300.00, declined_count: 0}
+  - name: "no NULL counts or amounts anywhere"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.completed_amount IS NULL OR s.pending_amount IS NULL OR s.cancelled_amount IS NULL OR s.completed_count IS NULL OR s.pending_count IS NULL OR s.cancelled_count IS NULL OR s.declined_count IS NULL"
+  - name: "the status counts add up to the total for every store"
+    sql: "SELECT bool_and(s.total_txn_count = s.completed_count + s.pending_count + s.cancelled_count + s.declined_count) FROM ({student}) s"
+  - name: "each store appears exactly once"
+    sql: "SELECT count(*) = count(DISTINCT store_id) FROM ({student}) s"

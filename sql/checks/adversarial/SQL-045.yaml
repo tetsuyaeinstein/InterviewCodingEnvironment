@@ -1,0 +1,117 @@
+# SQL-045 is graded by its column contract plus these assertions (hash values themselves are
+# implementation-specific). Assertions marked 'test rows' re-run your query against synthetic
+# source/target rows supplied as CTEs that shadow the real tables, so your query must reference
+# source_transactions / target_transactions unqualified.
+assertions:
+  - name: "one row per (system, transaction_id): 2,032 SOURCE + 2,020 TARGET rows"
+    profile: small
+    sql: >-
+      SELECT count(*) = 4052 AND count(DISTINCT (system, transaction_id)) = 4052 AND count(*) FILTER (WHERE system = 'SOURCE') = 2032 FROM ({student}) s
+  - name: "system is 'SOURCE'/'TARGET'; every fingerprint is non-NULL text holding a lowercase hex md5 (32) or sha256 (64) digest"
+    sql: >-
+      SELECT bool_and(system IN ('SOURCE', 'TARGET') AND pg_typeof(row_fingerprint) = 'text'::regtype AND row_fingerprint IS NOT NULL AND row_fingerprint ~ '^([0-9a-f]{32}|[0-9a-f]{64})$') FROM ({student}) s
+  - name: "rows identical in both systems (90001-90005, and 90011/90012 with NULL in both) get identical fingerprints; load timestamps are excluded"
+    sql: >-
+      SELECT count(*) = 7 FROM ({student}) s JOIN ({student}) t ON t.transaction_id = s.transaction_id AND t.system = 'TARGET' WHERE s.system = 'SOURCE' AND (s.transaction_id BETWEEN 90001 AND 90005 OR s.transaction_id IN (90011, 90012)) AND s.row_fingerprint = t.row_fingerprint
+  - name: "90008 (amount), 90010 (NULL vs 1001), 90013 ('' vs NULL) and 90014 (1 s drift) differ between systems"
+    sql: >-
+      SELECT count(*) = 4 FROM ({student}) s JOIN ({student}) t ON t.transaction_id = s.transaction_id AND t.system = 'TARGET' WHERE s.system = 'SOURCE' AND s.transaction_id IN (90008, 90010, 90013, 90014) AND s.row_fingerprint <> t.row_fingerprint
+  - name: "90019 (note = the string 'NULL') and 90020 (note IS NULL) get different fingerprints"
+    sql: >-
+      SELECT count(DISTINCT row_fingerprint) = 2 FROM ({student}) s WHERE system = 'SOURCE' AND transaction_id IN (90019, 90020)
+  - name: "test rows ('AB','C') vs ('A','BC') and ('A,B',NULL) vs ('A','B') in merchant_ref/note get different fingerprints"
+    sql: |
+      WITH fx (transaction_id, customer_id, merchant_ref, note) AS (
+        VALUES (1::bigint, 7::int, 'AB'::text, 'C'::text), (2, 7, 'A', 'BC'),
+               (3, 7, 'X|Y', NULL), (4, 7, 'X', 'Y'),
+               (5, 7, NULL, 'X'), (6, 7, 'X', NULL),
+               (7, 7, 'R', ''), (8, 7, 'R', NULL), (9, 7, 'R', 'NULL'),
+               (10, NULL, 'R', NULL), (11, 0, 'R', NULL),
+               (12, 7, 'A,B', NULL), (13, 7, 'A', 'B'),
+               (14, 7, 'AB', 'C')),
+      source_transactions AS (
+        SELECT transaction_id, customer_id, 1::int AS store_id,
+               timestamptz '2025-12-10 12:00:00+00' AS transaction_ts, 10.00::numeric(12,2) AS amount,
+               'COMPLETED'::text AS status, 'CARD'::text AS payment_method, merchant_ref, note,
+               timestamptz '2026-01-01 01:00:00+00' AS extracted_at
+        FROM fx),
+      target_transactions AS (
+        SELECT transaction_id, customer_id, 1::int AS store_id,
+               timestamptz '2025-12-10 12:00:00+00' AS transaction_ts, 10.00::numeric(12,2) AS amount,
+               'COMPLETED'::text AS status, 'CARD'::text AS payment_method, merchant_ref, note,
+               timestamptz '2026-01-01 01:30:00+00' AS loaded_at
+        FROM fx),
+      r AS ({student})
+      SELECT COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 1) <> (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 2), false) AND COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 12) <> (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 13), false)
+  - name: "test rows ('X|Y',NULL) vs ('X','Y') and (NULL,'X') vs ('X',NULL) in merchant_ref/note get different fingerprints"
+    sql: |
+      WITH fx (transaction_id, customer_id, merchant_ref, note) AS (
+        VALUES (1::bigint, 7::int, 'AB'::text, 'C'::text), (2, 7, 'A', 'BC'),
+               (3, 7, 'X|Y', NULL), (4, 7, 'X', 'Y'),
+               (5, 7, NULL, 'X'), (6, 7, 'X', NULL),
+               (7, 7, 'R', ''), (8, 7, 'R', NULL), (9, 7, 'R', 'NULL'),
+               (10, NULL, 'R', NULL), (11, 0, 'R', NULL),
+               (12, 7, 'A,B', NULL), (13, 7, 'A', 'B'),
+               (14, 7, 'AB', 'C')),
+      source_transactions AS (
+        SELECT transaction_id, customer_id, 1::int AS store_id,
+               timestamptz '2025-12-10 12:00:00+00' AS transaction_ts, 10.00::numeric(12,2) AS amount,
+               'COMPLETED'::text AS status, 'CARD'::text AS payment_method, merchant_ref, note,
+               timestamptz '2026-01-01 01:00:00+00' AS extracted_at
+        FROM fx),
+      target_transactions AS (
+        SELECT transaction_id, customer_id, 1::int AS store_id,
+               timestamptz '2025-12-10 12:00:00+00' AS transaction_ts, 10.00::numeric(12,2) AS amount,
+               'COMPLETED'::text AS status, 'CARD'::text AS payment_method, merchant_ref, note,
+               timestamptz '2026-01-01 01:30:00+00' AS loaded_at
+        FROM fx),
+      r AS ({student})
+      SELECT COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 3) <> (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 4), false) AND COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 5) <> (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 6), false)
+  - name: "test rows: note '' vs NULL vs the string 'NULL', and customer_id NULL vs 0, all get different fingerprints"
+    sql: |
+      WITH fx (transaction_id, customer_id, merchant_ref, note) AS (
+        VALUES (1::bigint, 7::int, 'AB'::text, 'C'::text), (2, 7, 'A', 'BC'),
+               (3, 7, 'X|Y', NULL), (4, 7, 'X', 'Y'),
+               (5, 7, NULL, 'X'), (6, 7, 'X', NULL),
+               (7, 7, 'R', ''), (8, 7, 'R', NULL), (9, 7, 'R', 'NULL'),
+               (10, NULL, 'R', NULL), (11, 0, 'R', NULL),
+               (12, 7, 'A,B', NULL), (13, 7, 'A', 'B'),
+               (14, 7, 'AB', 'C')),
+      source_transactions AS (
+        SELECT transaction_id, customer_id, 1::int AS store_id,
+               timestamptz '2025-12-10 12:00:00+00' AS transaction_ts, 10.00::numeric(12,2) AS amount,
+               'COMPLETED'::text AS status, 'CARD'::text AS payment_method, merchant_ref, note,
+               timestamptz '2026-01-01 01:00:00+00' AS extracted_at
+        FROM fx),
+      target_transactions AS (
+        SELECT transaction_id, customer_id, 1::int AS store_id,
+               timestamptz '2025-12-10 12:00:00+00' AS transaction_ts, 10.00::numeric(12,2) AS amount,
+               'COMPLETED'::text AS status, 'CARD'::text AS payment_method, merchant_ref, note,
+               timestamptz '2026-01-01 01:30:00+00' AS loaded_at
+        FROM fx),
+      r AS ({student})
+      SELECT COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 7) <> (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 8), false) AND COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 8) <> (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 9), false) AND COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 7) <> (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 9), false) AND COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 10) <> (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 11), false)
+  - name: "test rows with identical business values but different keys/load times get the same fingerprint"
+    sql: |
+      WITH fx (transaction_id, customer_id, merchant_ref, note) AS (
+        VALUES (1::bigint, 7::int, 'AB'::text, 'C'::text), (2, 7, 'A', 'BC'),
+               (3, 7, 'X|Y', NULL), (4, 7, 'X', 'Y'),
+               (5, 7, NULL, 'X'), (6, 7, 'X', NULL),
+               (7, 7, 'R', ''), (8, 7, 'R', NULL), (9, 7, 'R', 'NULL'),
+               (10, NULL, 'R', NULL), (11, 0, 'R', NULL),
+               (12, 7, 'A,B', NULL), (13, 7, 'A', 'B'),
+               (14, 7, 'AB', 'C')),
+      source_transactions AS (
+        SELECT transaction_id, customer_id, 1::int AS store_id,
+               timestamptz '2025-12-10 12:00:00+00' AS transaction_ts, 10.00::numeric(12,2) AS amount,
+               'COMPLETED'::text AS status, 'CARD'::text AS payment_method, merchant_ref, note,
+               timestamptz '2026-01-01 01:00:00+00' AS extracted_at
+        FROM fx),
+      target_transactions AS (
+        SELECT transaction_id, customer_id, 1::int AS store_id,
+               timestamptz '2025-12-10 12:00:00+00' AS transaction_ts, 10.00::numeric(12,2) AS amount,
+               'COMPLETED'::text AS status, 'CARD'::text AS payment_method, merchant_ref, note,
+               timestamptz '2026-01-01 01:30:00+00' AS loaded_at
+        FROM fx),
+      r AS ({student})
+      SELECT COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 1) = (SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 14), false) AND COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 1) = (SELECT row_fingerprint FROM r WHERE system = 'TARGET' AND transaction_id = 1), false) AND COALESCE((SELECT row_fingerprint FROM r WHERE system = 'SOURCE' AND transaction_id = 8) = (SELECT row_fingerprint FROM r WHERE system = 'TARGET' AND transaction_id = 8), false)

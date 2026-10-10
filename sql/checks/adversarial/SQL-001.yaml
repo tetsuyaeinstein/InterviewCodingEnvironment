@@ -1,0 +1,27 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+# Fixture customers are described in database/DATA_DICTIONARY.md.
+assertions:
+  - name: "customer 1 (no transactions at all) is present with 0 transactions and 0.00"
+    row: {customer_id: 1}
+    expect: {completed_txn_count: 0, total_completed_spend: 0.00}
+  - name: "customer 33 (only a CANCELLED 45.00 transaction) is present with 0 and 0.00"
+    row: {customer_id: 33}
+    expect: {completed_txn_count: 0, total_completed_spend: 0.00}
+  - name: "customer 32 (PILOT, no transactions) is present with 0 and 0.00"
+    row: {customer_id: 32}
+    expect: {completed_txn_count: 0, total_completed_spend: 0.00}
+  - name: "customer 23 spent 140.00 over 2 completed transactions (100.00 + 40.00, refunds ignored)"
+    row: {customer_id: 23}
+    expect: {completed_txn_count: 2, total_completed_spend: 140.00}
+  - name: "customer 26 spent 60.00 over 3 completed transactions (PENDING 99.00 excluded)"
+    row: {customer_id: 26}
+    expect: {completed_txn_count: 3, total_completed_spend: 60.00}
+  - name: "customer 22 spent 50.00 over 2 completed transactions (PENDING on 2025-01-31 excluded)"
+    row: {customer_id: 22}
+    expect: {completed_txn_count: 2, total_completed_spend: 50.00}
+  - name: "guest checkouts (NULL customer_id) do not produce a row"
+    absent: {customer_id: null}
+  - name: "every customer appears exactly once"
+    sql: "SELECT count(*) = (SELECT count(*) FROM customers) AND count(DISTINCT customer_id) = count(*) FROM ({student}) s"
+  - name: "no NULL counts or amounts (zero means 0 / 0.00)"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.completed_txn_count IS NULL OR s.total_completed_spend IS NULL"

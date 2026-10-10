@@ -1,0 +1,27 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+assertions:
+  - name: "customer 5 (two equally long 5-day streaks) appears once, with the earliest streak and the tie counted"
+    row: {customer_id: 5}
+    count: 1
+    expect: {longest_streak_days: 5, streak_start: "2025-05-01", streak_end: "2025-05-05", tied_streaks: 2}
+  - name: "customer 12 (two 2-day streaks around a CANCELLED-only day): earliest 07-10 .. 07-11, tie of 2"
+    row: {customer_id: 12}
+    expect: {longest_streak_days: 2, streak_start: "2025-07-10", streak_end: "2025-07-11", tied_streaks: 2}
+  - name: "customer 9: the run from December 2024 is clipped to 2025-01-01 .. 2025-01-02 (2 days)"
+    row: {customer_id: 9}
+    expect: {longest_streak_days: 2, streak_start: "2025-01-01", streak_end: "2025-01-02", tied_streaks: 1}
+  - name: "customer 10 (purchases only in 2024) is not reported"
+    absent: {customer_id: 10}
+  - name: "customer 6 (duplicate purchases per day): 4 days, 2025-06-02 .. 06-05"
+    row: {customer_id: 6}
+    expect: {longest_streak_days: 4, streak_start: "2025-06-02", streak_end: "2025-06-05", tied_streaks: 1}
+  - name: "customer 11 (4 + 3 days): the 4-day streak wins, no tie"
+    row: {customer_id: 11}
+    expect: {longest_streak_days: 4, streak_start: "2025-07-01", tied_streaks: 1}
+  - name: "customer 4: longest streak is 7 days, 2025-04-01 .. 04-07"
+    row: {customer_id: 4}
+    expect: {longest_streak_days: 7, streak_start: "2025-04-01", streak_end: "2025-04-07"}
+  - name: "customer 19 (no two consecutive purchase days) is not reported"
+    absent: {customer_id: 19}
+  - name: "exactly one row per customer"
+    sql: "SELECT count(*) = count(DISTINCT customer_id) AND count(*) > 0 FROM ({student}) s"

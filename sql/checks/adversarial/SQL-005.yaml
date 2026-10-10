@@ -1,0 +1,24 @@
+# Hand-written, fixture-based assertions (fixture customers 23-26).
+assertions:
+  - name: "customer 23: 2 txns, 3 items, gross 140.00, refunds 50.00 (20 + 30), net 90.00"
+    row: {customer_id: 23}
+    expect: {completed_txn_count: 2, items_sold: 3, gross_spend: 140.00, refunded_amount: 50.00, net_spend: 90.00}
+  - name: "customer 24: fully refunded 80.00 transaction, net 0.00"
+    row: {customer_id: 24}
+    expect: {completed_txn_count: 1, items_sold: 1, gross_spend: 80.00, refunded_amount: 80.00, net_spend: 0.00}
+  - name: "customer 25: 120.00 sale on 10-30 with November refunds 45.00 + 15.00, net 60.00"
+    row: {customer_id: 25}
+    expect: {completed_txn_count: 1, items_sold: 2, gross_spend: 120.00, refunded_amount: 60.00, net_spend: 60.00}
+  - name: "customer 26: only the two 2025-10-05 sales (10.00 + 20.00) are in scope, no refunds -> 0.00"
+    row: {customer_id: 26}
+    expect: {completed_txn_count: 2, items_sold: 2, gross_spend: 30.00, refunded_amount: 0.00, net_spend: 30.00}
+  - name: "customer 1 (no transactions) is not reported"
+    absent: {customer_id: 1}
+  - name: "guest checkouts (NULL customer_id) are not reported"
+    absent: {customer_id: null}
+  - name: "each customer appears exactly once"
+    sql: "SELECT count(*) = count(DISTINCT customer_id) FROM ({student}) s"
+  - name: "no NULL refunded or net amounts"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.refunded_amount IS NULL OR s.net_spend IS NULL"
+  - name: "all refunds of Q4 sales are counted, including refunds issued in 2026"
+    sql: "SELECT sum(s.refunded_amount) = (SELECT sum(r.refund_amount) FROM refunds r JOIN transactions t ON t.transaction_id = r.transaction_id WHERE t.customer_id IS NOT NULL AND t.transaction_status = 'COMPLETED' AND t.transaction_ts >= TIMESTAMPTZ '2025-10-01 00:00:00+00' AND t.transaction_ts < TIMESTAMPTZ '2026-01-01 00:00:00+00') FROM ({student}) s"

@@ -1,0 +1,47 @@
+{
+ "id": "SQL-055",
+ "generated_from": "SQL-055.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "source_system",
+   "category": "text"
+  },
+  {
+   "name": "loaded_events",
+   "category": "number"
+  },
+  {
+   "name": "skewed_events_excluded",
+   "category": "number"
+  },
+  {
+   "name": "p50_delay_s",
+   "category": "number"
+  },
+  {
+   "name": "p95_delay_s",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "APP",
+   "2899.00",
+   "8.00",
+   "26.00",
+   "2157.60"
+  ],
+  [
+   "FIXTURE",
+   "23.00",
+   "1.00",
+   "300.00",
+   "615.00"
+  ]
+ ]
+}

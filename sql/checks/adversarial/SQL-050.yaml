@@ -1,0 +1,19 @@
+# Pipeline fixtures (database/DATA_DICTIONARY.md, "Pipelines"), hourly windows on 2025-12-15 UTC.
+assertions:
+  - name: "POS: the failed 03-04 window was retried successfully, so coverage reaches 06:00"
+    row: {source_system: POS}
+    expect: {safe_watermark: "2025-12-15T06:00:00+00:00", recorded_is_unsafe: false, next_window_status: NOT_RUN}
+  - name: "ECOM: 01-02 failed and was never retried; later successes do not count, so the safe watermark is 01:00"
+    row: {source_system: ECOM}
+    expect: {safe_watermark: "2025-12-15T01:00:00+00:00", next_window_status: FAILED}
+  - name: "ECOM: the recorded watermark (04:00) skips the failed window and is flagged unsafe"
+    row: {source_system: ECOM}
+    expect: {recorded_watermark: "2025-12-15T04:00:00+00:00", recorded_is_unsafe: true}
+  - name: "KIOSK: the 02-03 run is still RUNNING, so the 03-04 success cannot be committed yet"
+    row: {source_system: KIOSK}
+    expect: {safe_watermark: "2025-12-15T02:00:00+00:00", next_window_status: RUNNING, recorded_is_unsafe: false}
+  - name: "MOBILE: the first window failed twice, so there is no safe watermark (NULL); the recorded 00:00 is not unsafe"
+    row: {source_system: MOBILE}
+    expect: {safe_watermark: null, recorded_is_unsafe: false, next_window_status: FAILED}
+  - name: "one row per source of transactions_incremental (4 rows)"
+    sql: "SELECT count(*) = 4 AND count(DISTINCT source_system) = 4 FROM ({student}) s"

@@ -1,0 +1,37 @@
+# Evaluated inside the sandbox after your statements ran (mutation mode).
+# Batch = FX-* events ingested from 2025-12-31 11:10 UTC; see the sandbox setup in the question.
+assertions:
+  - name: "POS FX-0002 is not resurrected: the stale update (lsn 9000115) arrived after the delete (9000120) was applied in an earlier batch"
+    sql: >-
+      SELECT NOT EXISTS (SELECT 1 FROM txn_current WHERE source_system = 'POS' AND business_key = 'FX-0002')
+         AND EXISTS (SELECT 1 FROM txn_tombstone WHERE source_system = 'POS' AND business_key = 'FX-0002' AND deleted_lsn = 9000120)
+  - name: "POS FX-0003 is live again (35.00, lsn 9000230): its re-insert is newer than its delete"
+    sql: >-
+      SELECT EXISTS (SELECT 1 FROM txn_current WHERE source_system = 'POS' AND business_key = 'FX-0003'
+                     AND amount = 35.00 AND status = 'COMPLETED' AND source_lsn = 9000230)
+         AND NOT EXISTS (SELECT 1 FROM txn_tombstone WHERE source_system = 'POS' AND business_key = 'FX-0003')
+  - name: "the ECOM FX-0003 tombstone belongs to another source system and is left unchanged"
+    sql: "SELECT count(*) = 1 FROM txn_tombstone WHERE source_system = 'ECOM' AND business_key = 'FX-0003' AND deleted_lsn = 9500000"
+  - name: "POS FX-0007 (delete for a key never seen) is remembered as a tombstone at lsn 9000610 and has no live row"
+    sql: >-
+      SELECT NOT EXISTS (SELECT 1 FROM txn_current WHERE business_key = 'FX-0007')
+         AND EXISTS (SELECT 1 FROM txn_tombstone WHERE source_system = 'POS' AND business_key = 'FX-0007' AND deleted_lsn = 9000610)
+  - name: "POS FX-0010: an older tombstone (9000900) does not block the newer insert; ends at 7.00 COMPLETED lsn 9000940"
+    sql: >-
+      SELECT EXISTS (SELECT 1 FROM txn_current WHERE source_system = 'POS' AND business_key = 'FX-0010'
+                     AND amount = 7.00 AND status = 'COMPLETED' AND source_lsn = 9000940)
+         AND NOT EXISTS (SELECT 1 FROM txn_tombstone WHERE source_system = 'POS' AND business_key = 'FX-0010')
+  - name: "POS FX-0006 (two versions at lsn 9000520) follows the stated tie policy: the later arrival, 80.00"
+    sql: "SELECT amount = 80.00 AND source_lsn = 9000520 FROM txn_current WHERE source_system = 'POS' AND business_key = 'FX-0006'"
+  - name: "POS FX-0008 (update arrived before its insert) ends at the update: 95.00, lsn 9000720"
+    sql: "SELECT amount = 95.00 AND source_lsn = 9000720 FROM txn_current WHERE source_system = 'POS' AND business_key = 'FX-0008'"
+  - name: "keys not in the batch (POS/ECOM FX-0001, POS FX-0009) are untouched"
+    sql: >-
+      SELECT count(*) = 3 FROM txn_current
+      WHERE (source_system, business_key, amount, source_lsn) IN
+            (('POS', 'FX-0001', 60.00, 9000030), ('ECOM', 'FX-0001', 510.00, 9000020), ('POS', 'FX-0009', 9.00, 9000810))
+  - name: "no key is both live and tombstoned; 9 live rows and 3 tombstones in total"
+    sql: >-
+      SELECT NOT EXISTS (SELECT 1 FROM txn_current c JOIN txn_tombstone d USING (source_system, business_key))
+         AND (SELECT count(*) FROM txn_current) = 9
+         AND (SELECT count(*) FROM txn_tombstone) = 3

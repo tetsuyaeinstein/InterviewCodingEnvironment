@@ -1,0 +1,29 @@
+# Skew facts of the seeded data (see DATA_DICTIONARY: store 6 online flagship, customer 1001, guest NULL bucket).
+assertions:
+  - name: "exactly 5 store rows and 5 customer rows"
+    sql: "SELECT count(*) FILTER (WHERE key_type = 'store') = 5 AND count(*) FILTER (WHERE key_type = 'customer') = 5 FROM ({student}) s"
+  - name: "store 6 (online flagship) is the #1 store"
+    row: {key_type: store, rank_in_type: 1}
+    expect: {key_value: "6"}
+  - name: "the guest NULL bucket is reported as (null), not dropped by GROUP BY / WHERE and not left as a real NULL"
+    present: {key_type: customer, key_value: "(null)"}
+    count: 1
+  - name: "no key_value is a SQL NULL"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.key_value IS NULL"
+  - name: "customer 1001 is the #1 customer key and the guest bucket is #2"
+    sql: >-
+      SELECT (SELECT key_value FROM ({student}) a WHERE key_type = 'customer' AND rank_in_type = 1) = '1001'
+         AND (SELECT key_value FROM ({student}) b WHERE key_type = 'customer' AND rank_in_type = 2) = '(null)'
+  - name: "ties (stores 7 and 38 both have the same count) are ordered by the numeric key: 7 before 38"
+    profile: small
+    sql: >-
+      SELECT (SELECT rank_in_type FROM ({student}) a WHERE key_type = 'store' AND key_value = '7')
+           < (SELECT rank_in_type FROM ({student}) b WHERE key_type = 'store' AND key_value = '38')
+  - name: "percentages use all transactions as denominator for both kinds"
+    sql: >-
+      SELECT bool_and(abs(s.pct_of_total - round(100.0 * s.txn_count / (SELECT count(*) FROM transactions), 2)) < 0.005)
+      FROM ({student}) s
+  - name: "txn_count of the store-6 row equals the real number of transactions of store 6 (all statuses)"
+    sql: >-
+      SELECT (SELECT txn_count FROM ({student}) s WHERE key_type = 'store' AND key_value = '6')
+           = (SELECT count(*) FROM transactions WHERE store_id = 6)

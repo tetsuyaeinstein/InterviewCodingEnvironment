@@ -1,0 +1,34 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+# Customer 65's baskets at store 2: p4 unavailable [05-10 13:00, 15:00), p5 always available,
+# p6 unavailable [09:00, 12:00) and not stocked (no row) [20:00, 05-11 08:00).
+assertions:
+  - name: "txn 6501 (10:00, p6 unavailable): not all, any, 2 products"
+    row: {transaction_id: 6501}
+    count: 1
+    expect: {all_available: false, any_available: true, available_products: 2}
+  - name: "txn 6502 (exactly 13:00:00, p4 becomes unavailable at that instant): not all, 2 products"
+    row: {transaction_id: 6502}
+    expect: {all_available: false, available_products: 2}
+  - name: "txn 6503 (14:59:59, one second before p4 returns): not all, 2 products"
+    row: {transaction_id: 6503}
+    expect: {all_available: false, available_products: 2}
+  - name: "txn 6504 (exactly 15:00:00, p4 is back): all three available"
+    row: {transaction_id: 6504}
+    expect: {all_available: true, any_available: true, available_products: 3}
+  - name: "txn 6505 (21:00, p6 covered by no availability row = not stocked): not all, 2 products"
+    row: {transaction_id: 6505}
+    expect: {all_available: false, any_available: true, available_products: 2}
+  - name: "txn 6506 (05-11 09:00, p6 restocked from 08:00): all available"
+    row: {transaction_id: 6506}
+    expect: {all_available: true, available_products: 3}
+  - name: "one row per in-scope transaction; flags never NULL and consistent with the count"
+    sql: >-
+      SELECT count(*) = count(DISTINCT transaction_id)
+             AND count(*) = (SELECT count(*) FROM transactions
+                             WHERE store_id = 2 AND transaction_status = 'COMPLETED'
+                               AND transaction_ts >= TIMESTAMPTZ '2025-05-10 00:00:00+00'
+                               AND transaction_ts <  TIMESTAMPTZ '2025-05-12 00:00:00+00')
+             AND bool_and(all_available IS NOT NULL AND any_available IS NOT NULL)
+             AND bool_and(all_available = (available_products = 3)
+                          AND any_available = (available_products > 0))
+      FROM ({student}) s

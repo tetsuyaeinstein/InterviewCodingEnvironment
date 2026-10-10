@@ -1,0 +1,69 @@
+{
+ "id": "SQL-008",
+ "generated_from": "SQL-008.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": true,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "category_name",
+   "category": "text"
+  },
+  {
+   "name": "gross_revenue",
+   "category": "number"
+  },
+  {
+   "name": "discount_amount",
+   "category": "number"
+  },
+  {
+   "name": "net_revenue",
+   "category": "number"
+  },
+  {
+   "name": "revenue_dense_rank",
+   "category": "number"
+  },
+  {
+   "name": "revenue_rank",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "Coffee & Tea",
+   "78.00",
+   "0.00",
+   "78.00",
+   "1.00",
+   "1.00"
+  ],
+  [
+   "Electronics Accessories",
+   "78.00",
+   "0.00",
+   "78.00",
+   "1.00",
+   "1.00"
+  ],
+  [
+   "Kitchenware",
+   "72.00",
+   "6.00",
+   "66.00",
+   "2.00",
+   "3.00"
+  ],
+  [
+   "Stationery",
+   "66.00",
+   "0.00",
+   "66.00",
+   "2.00",
+   "3.00"
+  ]
+ ]
+}

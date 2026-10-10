@@ -1,0 +1,43 @@
+# Customer 50 (EAST until 2025-06-15 10:00, then WEST) buys 06-01, 06-15 09:59:59, 06-15 10:00:00, 06-20.
+# Customer 53 has no version in March 2025 (gap) and buys 03-01 00:00:00 and 03-10.
+assertions:
+  - name: "customer 50 in June 2025 is counted in BOTH EAST and WEST (mover), once in each"
+    sql: >-
+      SELECT (SELECT active_customers FROM ({student}) s WHERE purchase_month = DATE '2025-06-01' AND region = 'EAST')
+           = (SELECT count(DISTINCT t.customer_id) FROM transactions t
+              JOIN dim_customer_scd2 d ON d.customer_id = t.customer_id
+               AND t.transaction_ts >= d.effective_from AND t.transaction_ts < d.effective_to
+              WHERE t.transaction_status = 'COMPLETED' AND d.region = 'EAST'
+                AND t.transaction_ts >= TIMESTAMPTZ '2025-06-01 00:00:00+00'
+                AND t.transaction_ts <  TIMESTAMPTZ '2025-07-01 00:00:00+00')
+         AND (SELECT active_customers FROM ({student}) s WHERE purchase_month = DATE '2025-06-01' AND region = 'WEST')
+           = (SELECT count(DISTINCT t.customer_id) FROM transactions t
+              JOIN dim_customer_scd2 d ON d.customer_id = t.customer_id
+               AND t.transaction_ts >= d.effective_from AND t.transaction_ts < d.effective_to
+              WHERE t.transaction_status = 'COMPLETED' AND d.region = 'WEST'
+                AND t.transaction_ts >= TIMESTAMPTZ '2025-06-01 00:00:00+00'
+                AND t.transaction_ts <  TIMESTAMPTZ '2025-07-01 00:00:00+00')
+  - name: "June 2025: the sum over regions exceeds the distinct purchasing customers (movers counted in each region)"
+    sql: >-
+      SELECT (SELECT sum(active_customers) FROM ({student}) s WHERE purchase_month = DATE '2025-06-01')
+           > (SELECT count(DISTINCT customer_id) FROM transactions
+              WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                AND transaction_ts >= TIMESTAMPTZ '2025-06-01 00:00:00+00'
+                AND transaction_ts <  TIMESTAMPTZ '2025-07-01 00:00:00+00')
+  - name: "customer 53's March purchases (no dimension version) fall into the NULL-region group of 2025-03"
+    row: {purchase_month: 2025-03-01, region: null}
+    count: 1
+  - name: "customer 50 is not attributed to the current region for the whole of June: EAST has a row in 2025-06"
+    present: {purchase_month: 2025-06-01, region: EAST}
+    count: 1
+  - name: "no guest checkouts: customers counted never exceed the known purchasing customers of the month"
+    sql: >-
+      SELECT bool_and(s.active_customers <= (SELECT count(DISTINCT t.customer_id) FROM transactions t
+              WHERE t.transaction_status = 'COMPLETED' AND t.customer_id IS NOT NULL
+                AND date_trunc('month', t.transaction_ts AT TIME ZONE 'UTC')::date = s.purchase_month))
+      FROM ({student}) s
+  - name: "one row per month and region (NULL region once per month), 2025 only"
+    sql: >-
+      SELECT count(*) = (SELECT count(*) FROM (SELECT DISTINCT purchase_month, region FROM ({student}) s2) x)
+         AND min(purchase_month) = DATE '2025-01-01' AND max(purchase_month) = DATE '2025-12-01'
+      FROM ({student}) s

@@ -1,89 +1,10 @@
 {
  "exercises": {
-  "PY-012": {
+  "SQL-001": {
    "checks": [
     {
-     "at": "2026-10-10T15:47:56+00:00",
-     "elapsed_s": 0.98,
-     "source": "check",
-     "status": "not_attempted"
-    }
-   ],
-   "logs": [
-    {
-     "at": "2026-10-10T15:58:02+00:00",
-     "confidence": 4,
-     "date": "2026-10-10",
-     "minutes": 12,
-     "notes": "felt ok"
-    },
-    {
-     "at": "2026-10-10T15:58:27+00:00",
-     "confidence": 4,
-     "date": "2026-10-10",
-     "minutes": 12,
-     "notes": "felt ok"
-    },
-    {
-     "at": "2026-10-10T15:58:51+00:00",
-     "confidence": 4,
-     "date": "2026-10-10",
-     "minutes": 12,
-     "notes": "felt ok"
-    }
-   ]
-  },
-  "PY-041": {
-   "checks": [
-    {
-     "at": "2026-10-10T15:47:58+00:00",
-     "elapsed_s": 1.37,
-     "source": "check",
-     "status": "failed"
-    },
-    {
-     "at": "2026-10-10T15:48:27+00:00",
-     "elapsed_s": 1.33,
-     "source": "check",
-     "status": "not_attempted"
-    }
-   ],
-   "logs": []
-  },
-  "SQL-021": {
-   "checks": [
-    {
-     "at": "2026-10-10T15:42:41+00:00",
-     "elapsed_s": 0.0,
-     "source": "check",
-     "status": "not_attempted"
-    },
-    {
-     "at": "2026-10-10T15:58:02+00:00",
+     "at": "2026-10-10T22:55:16+00:00",
      "elapsed_s": 0.1,
-     "source": "check",
-     "status": "not_attempted"
-    },
-    {
-     "at": "2026-10-10T15:58:27+00:00",
-     "elapsed_s": 0.1,
-     "source": "check",
-     "status": "not_attempted"
-    },
-    {
-     "at": "2026-10-10T15:58:51+00:00",
-     "elapsed_s": 0.1,
-     "source": "check",
-     "status": "not_attempted"
-    }
-   ],
-   "logs": []
-  },
-  "SQL-046": {
-   "checks": [
-    {
-     "at": "2026-10-10T15:45:36+00:00",
-     "elapsed_s": 0.0,
      "source": "check",
      "status": "not_attempted"
     }

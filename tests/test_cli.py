@@ -106,7 +106,7 @@ def test_session_plan_respects_budget_and_mix(isolated_progress):
 
 def test_progress_log_and_reset_attempts_preserve_history(tmp_path, monkeypatch, capsys, isolated_progress):
     ex = exercise_catalog.get("PY-012")
-    original = ex.practice_path.read_text(encoding="utf-8")
+    original = ex.practice_path.read_bytes()
     monkeypatch.setattr(cli, "STUDY_DIR", tmp_path)
     try:
         ex.practice_path.write_text(original + "\n# my attempt\n", encoding="utf-8")
@@ -120,7 +120,7 @@ def test_progress_log_and_reset_attempts_preserve_history(tmp_path, monkeypatch,
         assert archived and "my attempt" in archived[0].read_text(encoding="utf-8")
         assert progress.load()["exercises"]["PY-012"]["logs"], "progress history must be kept"
     finally:
-        ex.practice_path.write_text(original, encoding="utf-8")
+        ex.practice_path.write_bytes(original)
 
 
 def test_python_check_reports_not_attempted_for_stub(isolated_progress):

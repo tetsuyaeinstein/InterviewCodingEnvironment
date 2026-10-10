@@ -1,0 +1,28 @@
+# Evaluated inside the sandbox after your statements ran (mutation mode).
+# Start: txn_events = 10 deliveries (msg-fx-2301-c x3 at 10:00:05, 10:00:35, 10:05:00; 7 other single messages).
+# new_batch = 4 rows: msg-fx-2301-c (already present), msg-fx-2701-c (new), msg-fx-2702-c twice (11:05 listed BEFORE 11:00).
+# Expected end state: 10 distinct messages.
+assertions:
+  - name: "a unique index or constraint on txn_events(message_id) exists in the sandbox schema (the database enforces the key)"
+    sql: >-
+      SELECT count(*) >= 1
+      FROM pg_index i
+      JOIN pg_class c ON c.oid = i.indrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = current_schema() AND c.relname = 'txn_events'
+        AND i.indisunique AND i.indisvalid AND i.indnatts = 1 AND i.indpred IS NULL
+        AND (SELECT a.attname FROM pg_attribute a WHERE a.attrelid = c.oid AND a.attnum = i.indkey[0]) = 'message_id'
+  - name: "exactly 10 rows and 10 distinct message_ids remain (7 + the retained 2301 + 2 new messages)"
+    sql: "SELECT count(*) = 10 AND count(DISTINCT message_id) = 10 FROM txn_events"
+  - name: "msg-fx-2301-c (delivered 3 times) keeps its EARLIEST delivery, 10:00:05"
+    sql: "SELECT count(*) = 1 AND min(delivered_at) = TIMESTAMPTZ '2025-10-20 10:00:05+00' FROM txn_events WHERE message_id = 'msg-fx-2301-c'"
+  - name: "the later redelivery of msg-fx-2301-c in the new batch (10:30) did not replace or duplicate the stored row"
+    sql: "SELECT count(*) = 0 FROM txn_events WHERE message_id = 'msg-fx-2301-c' AND delivered_at >= TIMESTAMPTZ '2025-10-20 10:30:00+00'"
+  - name: "new message msg-fx-2701-c was inserted"
+    sql: "SELECT count(*) = 1 FROM txn_events WHERE message_id = 'msg-fx-2701-c' AND transaction_id = 2701"
+  - name: "msg-fx-2702-c appears once, with its earliest delivery 11:00 (the batch listed 11:05 first)"
+    sql: "SELECT count(*) = 1 AND min(delivered_at) = TIMESTAMPTZ '2025-10-20 11:00:00+00' FROM txn_events WHERE message_id = 'msg-fx-2702-c'"
+  - name: "messages that were delivered once (for example msg-fx-2501-c and msg-fx-2601-c2) were not deleted"
+    sql: "SELECT count(*) = 2 FROM txn_events WHERE message_id IN ('msg-fx-2501-c', 'msg-fx-2601-c2')"
+  - name: "the staging table new_batch was not modified (still 4 rows)"
+    sql: "SELECT count(*) = 4 FROM new_batch"

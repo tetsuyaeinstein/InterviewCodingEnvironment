@@ -1,0 +1,117 @@
+{
+ "id": "SQL-036",
+ "generated_from": "SQL-036.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "snapshot_date",
+   "category": "date"
+  },
+  {
+   "name": "product_id",
+   "category": "number"
+  },
+  {
+   "name": "available_any_time",
+   "category": "boolean"
+  },
+  {
+   "name": "available_end_of_day",
+   "category": "boolean"
+  },
+  {
+   "name": "available_minutes",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "2025-05-10",
+   "4.00",
+   "true",
+   "true",
+   "1320.00"
+  ],
+  [
+   "2025-05-11",
+   "4.00",
+   "true",
+   "true",
+   "1440.00"
+  ],
+  [
+   "2025-05-09",
+   "6.00",
+   "true",
+   "true",
+   "1440.00"
+  ],
+  [
+   "2025-05-11",
+   "5.00",
+   "true",
+   "true",
+   "1440.00"
+  ],
+  [
+   "2025-05-12",
+   "6.00",
+   "true",
+   "true",
+   "1440.00"
+  ],
+  [
+   "2025-05-12",
+   "4.00",
+   "true",
+   "true",
+   "1440.00"
+  ],
+  [
+   "2025-05-09",
+   "5.00",
+   "true",
+   "true",
+   "1440.00"
+  ],
+  [
+   "2025-05-10",
+   "6.00",
+   "true",
+   "false",
+   "1020.00"
+  ],
+  [
+   "2025-05-11",
+   "6.00",
+   "true",
+   "true",
+   "960.00"
+  ],
+  [
+   "2025-05-12",
+   "5.00",
+   "true",
+   "true",
+   "1440.00"
+  ],
+  [
+   "2025-05-10",
+   "5.00",
+   "true",
+   "true",
+   "1440.00"
+  ],
+  [
+   "2025-05-09",
+   "4.00",
+   "true",
+   "true",
+   "1440.00"
+  ]
+ ]
+}

@@ -1,0 +1,133 @@
+{
+ "id": "SQL-018",
+ "generated_from": "SQL-018.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "region",
+   "category": "text"
+  },
+  {
+   "name": "revenue_rank",
+   "category": "number"
+  },
+  {
+   "name": "product_id",
+   "category": "number"
+  },
+  {
+   "name": "product_name",
+   "category": "text"
+  },
+  {
+   "name": "net_revenue",
+   "category": "number"
+  },
+  {
+   "name": "pct_of_region_revenue",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "EAST",
+   "1.00",
+   "35.00",
+   "Eco Chef Knife",
+   "10215.32",
+   "3.38"
+  ],
+  [
+   "EAST",
+   "2.00",
+   "188.00",
+   "Family Gift Card 25",
+   "9924.59",
+   "3.28"
+  ],
+  [
+   "EAST",
+   "3.00",
+   "91.00",
+   "Deluxe Top-Up 20",
+   "8896.72",
+   "2.94"
+  ],
+  [
+   "NORTH",
+   "1.00",
+   "188.00",
+   "Family Gift Card 25",
+   "5086.70",
+   "3.16"
+  ],
+  [
+   "NORTH",
+   "2.00",
+   "91.00",
+   "Deluxe Top-Up 20",
+   "4514.39",
+   "2.80"
+  ],
+  [
+   "NORTH",
+   "3.00",
+   "104.00",
+   "Everyday Gift Card 50",
+   "4158.76",
+   "2.58"
+  ],
+  [
+   "SOUTH",
+   "1.00",
+   "188.00",
+   "Family Gift Card 25",
+   "6375.56",
+   "3.87"
+  ],
+  [
+   "SOUTH",
+   "2.00",
+   "104.00",
+   "Everyday Gift Card 50",
+   "5937.37",
+   "3.60"
+  ],
+  [
+   "SOUTH",
+   "3.00",
+   "91.00",
+   "Deluxe Top-Up 20",
+   "5431.84",
+   "3.30"
+  ],
+  [
+   "WEST",
+   "1.00",
+   "188.00",
+   "Family Gift Card 25",
+   "6376.73",
+   "4.00"
+  ],
+  [
+   "WEST",
+   "2.00",
+   "104.00",
+   "Everyday Gift Card 50",
+   "5147.22",
+   "3.23"
+  ],
+  [
+   "WEST",
+   "3.00",
+   "35.00",
+   "Eco Chef Knife",
+   "4960.01",
+   "3.11"
+  ]
+ ]
+}

@@ -1,0 +1,68 @@
+{
+ "id": "SQL-007",
+ "generated_from": "SQL-007.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 6,
+ "columns": [
+  {
+   "name": "load_batch_id",
+   "category": "number"
+  },
+  {
+   "name": "transaction_id",
+   "category": "number"
+  },
+  {
+   "name": "line_number",
+   "category": "number"
+  },
+  {
+   "name": "product_id",
+   "category": "number"
+  },
+  {
+   "name": "issue",
+   "category": "text"
+  }
+ ],
+ "rows": [
+  [
+   "1.000000",
+   "99999999.000000",
+   "1.000000",
+   "1.000000",
+   "MISSING_TRANSACTION"
+  ],
+  [
+   "1.000000",
+   "2301.000000",
+   "3.000000",
+   "999999.000000",
+   "MISSING_PRODUCT"
+  ],
+  [
+   "1.000000",
+   "88888888.000000",
+   "1.000000",
+   "777777.000000",
+   "MISSING_TRANSACTION_AND_PRODUCT"
+  ],
+  [
+   "1.000000",
+   "2302.000000",
+   "2.000000",
+   null,
+   "NULL_PRODUCT_ID"
+  ],
+  [
+   "1.000000",
+   null,
+   null,
+   "4.000000",
+   "NULL_TRANSACTION_ID"
+  ]
+ ]
+}

@@ -1,0 +1,27 @@
+# Hand-written, fixture-based assertions. Store 2 on 2025-05-10 (UTC):
+# p4 unavailable [13:00, 15:00); p5 always available;
+# p6 unavailable [09:00, 12:00), available [12:00, 20:00), uncovered [20:00, 05-11 08:00).
+assertions:
+  - name: "p4 on 05-10: a two-hour outage inside the day; any-time true, end-of-day true, 1320 minutes"
+    row: {snapshot_date: 2025-05-10, product_id: 4}
+    count: 1
+    expect: {available_any_time: true, available_end_of_day: true, available_minutes: 1320.00}
+  - name: "p6 on 05-10: available any time, but NOT at end of day (uncovered from 20:00); 1020 minutes"
+    row: {snapshot_date: 2025-05-10, product_id: 6}
+    count: 1
+    expect: {available_any_time: true, available_end_of_day: false, available_minutes: 1020.00}
+  - name: "p6 on 05-11: uncovered until 08:00, then available: end-of-day true, 960 minutes"
+    row: {snapshot_date: 2025-05-11, product_id: 6}
+    expect: {available_any_time: true, available_end_of_day: true, available_minutes: 960.00}
+  - name: "p5 is available all day on every day (1440 minutes)"
+    sql: >-
+      SELECT count(*) = 4 AND bool_and(available_any_time AND available_end_of_day AND available_minutes = 1440)
+      FROM ({student}) s WHERE s.product_id = 5
+  - name: "p4 on 05-09 (before any change) is available all day"
+    row: {snapshot_date: 2025-05-09, product_id: 4}
+    expect: {available_any_time: true, available_end_of_day: true, available_minutes: 1440.00}
+  - name: "p6 on 05-12 (open-ended row) is available all day"
+    row: {snapshot_date: 2025-05-12, product_id: 6}
+    expect: {available_end_of_day: true, available_minutes: 1440.00}
+  - name: "exactly 12 rows: 4 days x products 4, 5, 6"
+    sql: "SELECT count(*) = 12 AND count(DISTINCT (snapshot_date, product_id)) = 12 FROM ({student}) s"

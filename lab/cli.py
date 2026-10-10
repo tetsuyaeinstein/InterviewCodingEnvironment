@@ -566,8 +566,16 @@ def _stub_is_clean(path: Path) -> list[str]:
         stmts = [s for s in body if not (isinstance(s, ast.Expr) and isinstance(getattr(s, "value", None), ast.Constant))]
         return all(isinstance(s, (ast.Raise, ast.Pass)) for s in stmts) and any(isinstance(s, ast.Raise) for s in stmts)
 
+    def _is_protocol(cls: ast.ClassDef) -> bool:
+        return any((isinstance(b, ast.Name) and b.id == "Protocol") or (isinstance(b, ast.Attribute) and b.attr == "Protocol")
+                   or (isinstance(b, ast.Subscript) and getattr(b.value, "id", "") == "Protocol") for b in cls.bases)
+
+    protocol_methods = {id(m) for c in ast.walk(tree) if isinstance(c, ast.ClassDef) and _is_protocol(c)
+                        for m in c.body if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))}
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if id(node) in protocol_methods:  # Protocol members are signatures only; `...` bodies are fine
+                continue
             if node.name.startswith("__") and node.name not in ("__init__", "__call__", "__iter__", "__next__",
                                                                 "__enter__", "__exit__", "__len__", "__contains__"):
                 continue

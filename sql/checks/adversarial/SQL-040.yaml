@@ -1,0 +1,42 @@
+# Fixtures: customer 23: txn 2301 (Oct 10, 2 lines 60 + 40 = 100.00) refunds 20.00 (Oct 12) + 30.00 (Oct 20); txn 2302 (Oct 15) 40.00.
+# customer 24: txn 2401 (80.00) fully refunded Oct 13.  customer 25: txn 2501 (Oct 30, 120.00) refunded 45.00 (Nov 5) + 15.00 (Nov 6).
+assertions:
+  - name: "exactly four rows: 2025-10, 2025-11, 2025-12, 2026-01"
+    sql: >-
+      SELECT count(*) = 4 AND array_agg(month_start ORDER BY month_start)
+           = ARRAY[DATE '2025-10-01', DATE '2025-11-01', DATE '2025-12-01', DATE '2026-01-01']
+      FROM ({student}) s
+  - name: "January 2026 has refunds but no sales: 0 orders, 0 units, 0.00 sales, net negative"
+    row: {month_start: 2026-01-01}
+    count: 1
+    expect: {orders: 0, units_sold: 0, gross_sales: 0.00}
+  - name: "refunded_amount of January 2026 equals the independently summed refunds paid in that month"
+    sql: >-
+      SELECT (SELECT refunded_amount FROM ({student}) s WHERE month_start = DATE '2026-01-01')
+           = (SELECT sum(refund_amount) FROM refunds
+              WHERE refund_ts >= TIMESTAMPTZ '2026-01-01 00:00:00+00' AND refund_ts < TIMESTAMPTZ '2026-02-01 00:00:00+00')
+  - name: "October refunds include customers 23 (20 + 30) and 24 (80), and exclude customer 25's November refunds (60)"
+    sql: >-
+      SELECT (SELECT refunded_amount FROM ({student}) s WHERE month_start = DATE '2025-10-01')
+           = (SELECT sum(refund_amount) FROM refunds
+              WHERE refund_ts >= TIMESTAMPTZ '2025-10-01 00:00:00+00' AND refund_ts < TIMESTAMPTZ '2025-11-01 00:00:00+00')
+         AND (SELECT refunded_amount FROM ({student}) s WHERE month_start = DATE '2025-10-01') >= 130.00
+  - name: "November refunds include customer 25's 45 + 15 refunds for an October sale"
+    sql: "SELECT (SELECT refunded_amount FROM ({student}) s WHERE month_start = DATE '2025-11-01') >= 60.00"
+  - name: "units are not multiplied by refunds: units_sold equals the sum of quantities of completed transactions in the month"
+    sql: >-
+      SELECT bool_and(s.units_sold = (SELECT coalesce(sum(ti.quantity), 0) FROM transaction_items ti
+                      JOIN transactions t ON t.transaction_id = ti.transaction_id
+                      WHERE t.transaction_status = 'COMPLETED'
+                        AND t.transaction_ts >= s.month_start::timestamp AT TIME ZONE 'UTC'
+                        AND t.transaction_ts <  (s.month_start + INTERVAL '1 month')::timestamp AT TIME ZONE 'UTC'))
+      FROM ({student}) s
+  - name: "gross_sales are not multiplied by lines or refunds: equals the sum of gross_amount of completed transactions in the month"
+    sql: >-
+      SELECT bool_and(s.gross_sales = (SELECT coalesce(sum(t.gross_amount), 0) FROM transactions t
+                      WHERE t.transaction_status = 'COMPLETED'
+                        AND t.transaction_ts >= s.month_start::timestamp AT TIME ZONE 'UTC'
+                        AND t.transaction_ts <  (s.month_start + INTERVAL '1 month')::timestamp AT TIME ZONE 'UTC'))
+      FROM ({student}) s
+  - name: "net_sales = gross_sales - refunded_amount in every month"
+    sql: "SELECT bool_and(net_sales = gross_sales - refunded_amount) FROM ({student}) s"

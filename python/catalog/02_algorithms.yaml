@@ -10,3 +10,102 @@ exercises:
     functions: [longest_unique_substring]
     prerequisites: []
     tags: [sliding-window, hashing, strings, two-pointers]
+
+  - id: PY-011
+    title: Match a refund to a pair of charges (deterministic two-sum)
+    difficulty: medium
+    estimated_minutes: 20
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-011.py
+    functions: [find_refund_pair]
+    prerequisites: []
+    tags: [hashing, two-pointers, sorting, tie-breaking, money]
+
+  - id: PY-013
+    title: Merge kiosk outage windows (half-open intervals)
+    difficulty: medium
+    estimated_minutes: 20
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-013.py
+    functions: [merge_intervals]
+    prerequisites: []
+    tags: [intervals, sorting, sweep-line, datetimes, boundaries]
+
+  - id: PY-014
+    title: Most frequently scanned SKUs (top-K frequent, deterministic ties)
+    difficulty: medium
+    estimated_minutes: 20
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-014.py
+    functions: [top_k_frequent]
+    prerequisites: [PY-003]
+    tags: [heaps, counting, bucket-sort, top-k, tie-breaking, streaming]
+
+  - id: PY-015
+    title: Group scrambled product labels (anagram grouping)
+    difficulty: easy
+    estimated_minutes: 10
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-015.py
+    functions: [group_anagram_labels]
+    prerequisites: []
+    tags: [hashing, canonical-keys, strings, unicode, ordering]
+
+  - id: PY-016
+    title: First transaction at or after a cutoff (lower-bound binary search)
+    difficulty: easy
+    estimated_minutes: 10
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-016.py
+    functions: [first_at_or_after]
+    prerequisites: []
+    tags: [binary-search, bisect, invariants, datetimes]
+
+  - id: PY-017
+    title: Merge sorted event streams lazily (k-way merge)
+    difficulty: hard
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-017.py
+    functions: [merge_sorted_streams]
+    prerequisites: []
+    tags: [heaps, generators, k-way-merge, laziness, stability, streaming]
+
+  - id: PY-018
+    title: Design a small LRU cache (O(1) get/put)
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-018.py
+    functions: [LRUCache]
+    prerequisites: []
+    tags: [design, hashing, linked-list, caching, ordereddict, data-structures]
+
+  - id: PY-019
+    title: Peak queue length in every K-minute window (sliding window maximum)
+    difficulty: hard
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-019.py
+    functions: [sliding_window_max]
+    prerequisites: [PY-012]
+    tags: [sliding-window, monotonic-deque, heaps, amortized-analysis, performance]
+
+  - id: PY-020
+    title: Customer purchase streaks of five or more consecutive days
+    difficulty: hard
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-020.py
+    functions: [find_purchase_streaks]
+    prerequisites: [PY-002]
+    tags: [gaps-and-islands, dates, timezones, sets, streaks, dedup]

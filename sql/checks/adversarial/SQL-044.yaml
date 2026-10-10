@@ -1,0 +1,29 @@
+# Reconciliation fixtures 90001-90020 (database/DATA_DICTIONARY.md, "Reconciliation rows").
+assertions:
+  - name: "90006 exists only in the source"
+    row: {transaction_id: 90006}
+    expect: {diff_type: MISSING_IN_TARGET, diff_columns: null}
+  - name: "90007 exists only in the target"
+    row: {transaction_id: 90007}
+    expect: {diff_type: EXTRA_IN_TARGET, diff_columns: null}
+  - name: "90008: amount 10.00 vs 10.01"
+    row: {transaction_id: 90008}
+    expect: {diff_type: CHANGED, diff_columns: amount}
+  - name: "90009: status COMPLETED vs CANCELLED"
+    row: {transaction_id: 90009}
+    expect: {diff_columns: status}
+  - name: "90010: customer_id NULL in source vs 1001 in target is a difference"
+    row: {transaction_id: 90010}
+    expect: {diff_type: CHANGED, diff_columns: customer_id}
+  - name: "90011 / 90012: NULL in both systems is NOT a difference"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE transaction_id IN (90011, 90012)"
+  - name: "90013: note '' vs NULL is a difference"
+    row: {transaction_id: 90013}
+    expect: {diff_columns: note}
+  - name: "90014: a 1-second timestamp drift is a difference"
+    row: {transaction_id: 90014}
+    expect: {diff_columns: transaction_ts}
+  - name: "identical rows (90001-90005, 90015-90020) are not reported; load timestamps are ignored"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE transaction_id BETWEEN 90001 AND 90005 OR transaction_id BETWEEN 90015 AND 90020"
+  - name: "each key is reported at most once"
+    sql: "SELECT count(*) = count(DISTINCT transaction_id) FROM ({student}) s"

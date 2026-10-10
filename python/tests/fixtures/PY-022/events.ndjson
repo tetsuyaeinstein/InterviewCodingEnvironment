@@ -1,0 +1,11 @@
+﻿{"event_id": "e1", "type": "click", "amount": 1.10}
+{"event_id": "e2", "type": "view"}   
+
+{"event_id": "e3", "type": "click", "amount": 2.5
+[{"event_id": "e4"}]
+   
+{"event_id": "e5"}
+{"event_id": "e6", "type": "click", "type": "view"}
+{"event_id": "e7", "type": null, "meta": {"tags": ["a", "b"]}}
+{"event_id": "e8", "type": "click", "amount": NaN}
+{"event_id": "e9", "type": "purchase", "amount": 19.99}

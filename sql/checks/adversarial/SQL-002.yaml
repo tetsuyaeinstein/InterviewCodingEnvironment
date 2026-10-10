@@ -1,0 +1,26 @@
+# Hand-written, fixture-based assertions. Store 4 is fixture-only (no generated transactions).
+assertions:
+  - name: "store 4 on 2025-03-01 has 1 completed transaction of 25.00"
+    row: {store_id: 4, business_date: "2025-03-01"}
+    expect: {completed_txn_count: 1, gross_amount: 25.00}
+  - name: "store 4 on 2025-03-02 has 1 completed transaction of 25.00"
+    row: {store_id: 4, business_date: "2025-03-02"}
+    expect: {completed_txn_count: 1, gross_amount: 25.00}
+  - name: "store 4 on 2025-03-03 has 1 completed transaction of 25.00"
+    row: {store_id: 4, business_date: "2025-03-03"}
+    expect: {completed_txn_count: 1, gross_amount: 25.00}
+  - name: "store 4 on 2025-03-15: the CANCELLED 25.00 next to the completed one does not count (1 / 25.00)"
+    row: {store_id: 4, business_date: "2025-03-15"}
+    expect: {completed_txn_count: 1, gross_amount: 25.00}
+  - name: "store 4 on 2025-03-16 (only a DECLINED transaction) is not reported"
+    absent: {store_id: 4, business_date: "2025-03-16"}
+  - name: "store 4 has exactly 4 store-days in the range"
+    sql: "SELECT count(*) = 4 FROM ({student}) s WHERE s.store_id = 4"
+  - name: "the last business date of the range (2025-03-16) is included"
+    sql: "SELECT count(*) > 0 FROM ({student}) s WHERE s.business_date = DATE '2025-03-16'"
+  - name: "no business date outside 2025-03-01 ... 2025-03-16 (e.g. 2025-02-28 23:59:59 UTC is out)"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.business_date < DATE '2025-03-01' OR s.business_date > DATE '2025-03-16'"
+  - name: "no store-day without completed sales"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE s.completed_txn_count IS NULL OR s.completed_txn_count < 1"
+  - name: "every completed transaction in the range is counted once, guest checkouts included"
+    sql: "SELECT sum(s.completed_txn_count) = (SELECT count(*) FROM transactions WHERE transaction_status = 'COMPLETED' AND transaction_ts >= TIMESTAMPTZ '2025-03-01 00:00:00+00' AND transaction_ts < TIMESTAMPTZ '2025-03-17 00:00:00+00') FROM ({student}) s"

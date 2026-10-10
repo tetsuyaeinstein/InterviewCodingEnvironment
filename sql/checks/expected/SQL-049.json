@@ -1,0 +1,131 @@
+{
+ "id": "SQL-049",
+ "generated_from": "SQL-049.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 6,
+ "columns": [
+  {
+   "name": "cdc_event_id",
+   "category": "number"
+  },
+  {
+   "name": "source_system",
+   "category": "text"
+  },
+  {
+   "name": "business_key",
+   "category": "text"
+  },
+  {
+   "name": "operation",
+   "category": "text"
+  },
+  {
+   "name": "source_lsn",
+   "category": "number"
+  },
+  {
+   "name": "issue_type",
+   "category": "text"
+  },
+  {
+   "name": "related_event_id",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "1667.000000",
+   "POS",
+   "POS-000601",
+   "U",
+   "1013170.000000",
+   "STALE_ARRIVAL",
+   "1660.000000"
+  ],
+  [
+   "3774.000000",
+   "POS",
+   "FX-0001",
+   "U",
+   "9000020.000000",
+   "STALE_ARRIVAL",
+   "3773.000000"
+  ],
+  [
+   "3778.000000",
+   "POS",
+   "FX-0002",
+   "U",
+   "9000115.000000",
+   "STALE_ARRIVAL",
+   "3777.000000"
+  ],
+  [
+   "3784.000000",
+   "POS",
+   "FX-0004",
+   "U",
+   "9000320.000000",
+   "DUPLICATE_DELIVERY",
+   "3783.000000"
+  ],
+  [
+   "3786.000000",
+   "POS",
+   "FX-0005",
+   "U",
+   "9000430.000000",
+   "COMMIT_TS_TIE",
+   "3787.000000"
+  ],
+  [
+   "3787.000000",
+   "POS",
+   "FX-0005",
+   "U",
+   "9000420.000000",
+   "STALE_ARRIVAL",
+   "3786.000000"
+  ],
+  [
+   "3789.000000",
+   "POS",
+   "FX-0006",
+   "U",
+   "9000520.000000",
+   "LSN_CONFLICT",
+   "3790.000000"
+  ],
+  [
+   "3790.000000",
+   "POS",
+   "FX-0006",
+   "U",
+   "9000520.000000",
+   "LSN_CONFLICT",
+   "3789.000000"
+  ],
+  [
+   "3791.000000",
+   "POS",
+   "FX-0007",
+   "D",
+   "9000610.000000",
+   "ORPHAN_CHANGE",
+   null
+  ],
+  [
+   "3793.000000",
+   "POS",
+   "FX-0008",
+   "I",
+   "9000710.000000",
+   "STALE_ARRIVAL",
+   "3792.000000"
+  ]
+ ]
+}

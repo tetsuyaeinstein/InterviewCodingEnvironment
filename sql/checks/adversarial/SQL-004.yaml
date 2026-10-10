@@ -1,0 +1,24 @@
+# Hand-written, fixture-based assertions (deliveries 1-10 of raw_transaction_events).
+assertions:
+  - name: "2301 (one message delivered 3 times) is REDELIVERY_ONLY with 3 deliveries and 1 message"
+    row: {transaction_id: 2301}
+    expect: {deliveries: 3, distinct_messages: 1, created_messages: 1, status_change_messages: 0, has_redelivery: true, classification: REDELIVERY_ONLY}
+  - name: "2302 (CREATED + STATUS_CHANGED) is LIFECYCLE_EVENTS without redelivery"
+    row: {transaction_id: 2302}
+    expect: {deliveries: 2, distinct_messages: 2, created_messages: 1, status_change_messages: 1, has_redelivery: false, classification: LIFECYCLE_EVENTS}
+  - name: "2401 (two CREATED messages with identical payloads) is BUSINESS_KEY_DUPLICATE"
+    row: {transaction_id: 2401}
+    expect: {deliveries: 2, distinct_messages: 2, created_messages: 2, status_change_messages: 0, has_redelivery: false, classification: BUSINESS_KEY_DUPLICATE}
+  - name: "2601 (two CREATED messages, amounts 30.00 vs 33.00) is CONFLICTING_DUPLICATE"
+    row: {transaction_id: 2601}
+    expect: {created_messages: 2, classification: CONFLICTING_DUPLICATE}
+  - name: "2501 (delivered once) is not reported"
+    absent: {transaction_id: 2501}
+  - name: "each transaction_id appears exactly once"
+    sql: "SELECT count(*) = count(DISTINCT transaction_id) FROM ({student}) s"
+  - name: "every business key with more than one delivery is reported, and no other"
+    sql: "SELECT count(*) = (SELECT count(*) FROM (SELECT transaction_id FROM raw_transaction_events GROUP BY transaction_id HAVING count(*) > 1) k) AND min(s.deliveries) >= 2 FROM ({student}) s"
+  - name: "a status change is never a duplicate: no key with a single CREATED message is classified as a duplicate"
+    sql: "SELECT count(*) = 0 FROM ({student}) s JOIN (SELECT transaction_id FROM raw_transaction_events WHERE event_type = 'CREATED' GROUP BY transaction_id HAVING count(DISTINCT message_id) = 1) one USING (transaction_id) WHERE s.classification IN ('CONFLICTING_DUPLICATE', 'BUSINESS_KEY_DUPLICATE')"
+  - name: "a double-posted CREATED that also has a status change is still a business-key duplicate (precedence)"
+    sql: "SELECT bool_and(s.classification IN ('BUSINESS_KEY_DUPLICATE', 'CONFLICTING_DUPLICATE')) FROM ({student}) s JOIN (SELECT transaction_id FROM raw_transaction_events GROUP BY transaction_id HAVING count(DISTINCT message_id) FILTER (WHERE event_type = 'CREATED') > 1 AND count(*) FILTER (WHERE event_type = 'STATUS_CHANGED') > 0) k USING (transaction_id)"

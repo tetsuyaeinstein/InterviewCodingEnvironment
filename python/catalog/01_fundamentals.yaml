@@ -1,0 +1,111 @@
+topic: 01_fundamentals
+exercises:
+  - id: PY-001
+    title: De-duplicate transaction records (first occurrence wins)
+    difficulty: easy
+    estimated_minutes: 10
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-001.py
+    functions: [dedupe_transactions]
+    prerequisites: []
+    tags: [dedup, hashing, sets, ordering, idempotency]
+
+  - id: PY-002
+    title: Completed spend per customer with exact cents
+    difficulty: easy
+    estimated_minutes: 15
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-002.py
+    functions: [total_spend_by_customer]
+    prerequisites: []
+    tags: [dictionaries, aggregation, decimal, money, nulls]
+
+  - id: PY-003
+    title: Top-K customers by spend with deterministic ties
+    difficulty: easy
+    estimated_minutes: 15
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-003.py
+    functions: [top_k_customers]
+    prerequisites: [PY-002]
+    tags: [sorting, heaps, top-k, tie-breaking, validation]
+
+  - id: PY-004
+    title: Flatten nested transaction payloads into dotted keys
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-004.py
+    functions: [flatten_record]
+    prerequisites: []
+    tags: [json, recursion, iteration, immutability, schema-on-read]
+
+  - id: PY-005
+    title: Normalise ISO 8601 timestamps to UTC (naive and DST-safe)
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-005.py
+    functions: [to_utc]
+    prerequisites: []
+    tags: [datetime, timezones, dst, zoneinfo, parsing]
+
+  - id: PY-006
+    title: Daily totals by business date in a local timezone
+    difficulty: medium
+    estimated_minutes: 20
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-006.py
+    functions: [daily_totals_by_business_date]
+    prerequisites: [PY-005]
+    tags: [datetime, timezones, dst, aggregation, business-date]
+
+  - id: PY-007
+    title: Schema validation with structured row errors
+    difficulty: hard
+    estimated_minutes: 40
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-007.py
+    functions: [validate_rows, FieldSpec, RowError, SchemaError]
+    prerequisites: [PY-002]
+    tags: [data-quality, validation, dataclasses, decimal, type-coercion, error-handling]
+
+  - id: PY-008
+    title: In-memory inner and left join with SQL semantics
+    difficulty: medium
+    estimated_minutes: 25
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-008.py
+    functions: [join_records]
+    prerequisites: [PY-001]
+    tags: [joins, hashing, many-to-many, nulls, sort-merge]
+
+  - id: PY-009
+    title: Event-type frequency report with normalisation
+    difficulty: easy
+    estimated_minutes: 10
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-009.py
+    functions: [event_type_counts]
+    prerequisites: []
+    tags: [counting, strings, normalisation, sorting]
+
+  - id: PY-010
+    title: Lazy fixed-size chunking of any iterable
+    difficulty: easy
+    estimated_minutes: 10
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/01_fundamentals/PY-010.py
+    functions: [chunked]
+    prerequisites: []
+    tags: [generators, iterators, laziness, batching]

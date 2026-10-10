@@ -134,8 +134,7 @@ IDs. Nothing depends on today's date. `lab db status` prints a checksum you can 
 runs. Hand-written edge-case fixtures (customers 1–99, stores 1–5, …) are identical in every
 profile.
 
-Expected results are snapshots taken on the **small** profile. On medium/large, `lab check`
-compares against the reference solution run live, and the edge-case assertions still apply.
+Expected results are snapshots taken on the **small** profile. On medium/large, `lab check` compares against the reference solution run live. The hand-written edge-case assertions about the fixture customers/stores still apply; the few that quote numbers from the small profile's *generated* data are marked `profile: small` and skipped on other profiles. All 108 SQL reference files and the PostgreSQL-backed Python exercises were verified on both small and medium; a sample (SQL-001/021/041/053/055/059, PY-042/044) also on large.
 
 **Connecting from VS Code:** install the recommended *SQLTools* + *SQLTools PostgreSQL* extensions.
 The connection **"Interview Lab (practice, read-only)"** is preconfigured in

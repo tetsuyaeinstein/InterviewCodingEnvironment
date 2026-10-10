@@ -1,0 +1,25 @@
+# Hand-written, fixture-based assertions (stg_transaction_items load batch 1).
+assertions:
+  - name: "line of missing transaction 99999999 (product 1 exists) is MISSING_TRANSACTION"
+    row: {transaction_id: 99999999}
+    expect: {issue: MISSING_TRANSACTION}
+  - name: "line 3 of existing transaction 2301 with missing product 999999 is MISSING_PRODUCT"
+    row: {transaction_id: 2301, product_id: 999999}
+    expect: {issue: MISSING_PRODUCT}
+  - name: "transaction 88888888 with product 777777 (both missing) is MISSING_TRANSACTION_AND_PRODUCT"
+    row: {transaction_id: 88888888}
+    expect: {issue: MISSING_TRANSACTION_AND_PRODUCT}
+  - name: "line 2 of transaction 2302 with a NULL product_id is NULL_PRODUCT_ID"
+    row: {transaction_id: 2302, line_number: 2}
+    expect: {issue: NULL_PRODUCT_ID}
+  - name: "the line with a NULL transaction_id (product 4) is reported as NULL_TRANSACTION_ID"
+    row: {transaction_id: null, product_id: 4}
+    expect: {issue: NULL_TRANSACTION_ID}
+  - name: "the valid line of transaction 2401 loaded twice is not reported (duplicates are a different check)"
+    absent: {transaction_id: 2401}
+  - name: "the valid line 1 of transaction 2302 is not reported"
+    absent: {transaction_id: 2302, line_number: 1}
+  - name: "the clean batch 2 has no findings"
+    absent: {load_batch_id: 2}
+  - name: "exactly 5 broken staging rows are reported"
+    sql: "SELECT count(*) = 5 FROM ({student}) s"

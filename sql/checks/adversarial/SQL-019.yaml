@@ -1,0 +1,27 @@
+# Hand-written assertions: store 5, November 2025 (see DATA_DICTIONARY). Store total 348.00.
+assertions:
+  - name: "product 1: 4 x 19.50 = 78.00, 22.41 % of 348.00 (the December line of product 1 is out)"
+    row: {product_id: 1}
+    expect: {net_revenue: 78.00, store_net_revenue: 348.00, pct_of_store_revenue: 22.41}
+  - name: "product 8: two lines in one transaction (10 + 12) x 3.00 = 66.00 in ONE row"
+    row: {product_id: 8}
+    count: 1
+    expect: {net_revenue: 66.00, pct_of_store_revenue: 18.97}
+  - name: "product 2: 3 x 24.00 - 6.00 discount = 66.00 (not 72.00)"
+    row: {product_id: 2}
+    expect: {net_revenue: 66.00, pct_of_store_revenue: 18.97}
+  - name: "product 6: 2 x 30.00 = 60.00 (the multi-line basket's 78.00 header amount is not used)"
+    row: {product_id: 6}
+    expect: {net_revenue: 60.00, pct_of_store_revenue: 17.24}
+  - name: "product 5: 2 x 9.00 = 18.00, 5.17 %"
+    row: {product_id: 5}
+    expect: {net_revenue: 18.00, pct_of_store_revenue: 5.17}
+  - name: "product 3: 5 x 12.00 = 60.00, 17.24 %"
+    row: {product_id: 3}
+    expect: {net_revenue: 60.00, pct_of_store_revenue: 17.24}
+  - name: "product 4 (only in the CANCELLED 300.00 basket) is not returned"
+    absent: {product_id: 4}
+  - name: "six products, one row each"
+    sql: "SELECT count(*) = 6 AND count(DISTINCT product_id) = 6 FROM ({student}) s"
+  - name: "product revenues add up to the store total 348.00 and percentages to 100"
+    sql: "SELECT sum(net_revenue) = 348.00 AND min(store_net_revenue) = 348.00 AND max(store_net_revenue) = 348.00 AND abs(sum(pct_of_store_revenue) - 100) < 0.05 FROM ({student}) s"

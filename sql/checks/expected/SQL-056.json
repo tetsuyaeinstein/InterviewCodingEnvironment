@@ -1,0 +1,140 @@
+{
+ "id": "SQL-056",
+ "generated_from": "SQL-056.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "event_id",
+   "category": "number"
+  },
+  {
+   "name": "event_type",
+   "category": "text"
+  },
+  {
+   "name": "amount",
+   "category": "number"
+  },
+  {
+   "name": "is_member",
+   "category": "boolean"
+  },
+  {
+   "name": "device",
+   "category": "text"
+  },
+  {
+   "name": "has_amount_issue",
+   "category": "boolean"
+  },
+  {
+   "name": "amount_issue",
+   "category": "text"
+  }
+ ],
+ "rows": [
+  [
+   "101.00",
+   "checkout",
+   "12.50",
+   "true",
+   "ios",
+   "false",
+   null
+  ],
+  [
+   "102.00",
+   "checkout",
+   "7.25",
+   "false",
+   "android",
+   "false",
+   null
+  ],
+  [
+   "103.00",
+   "checkout",
+   null,
+   null,
+   "web",
+   "true",
+   "INVALID"
+  ],
+  [
+   "104.00",
+   "checkout",
+   null,
+   null,
+   "web",
+   "true",
+   "MISSING"
+  ],
+  [
+   "105.00",
+   "checkout",
+   null,
+   null,
+   "ios",
+   "true",
+   "MISSING"
+  ],
+  [
+   "106.00",
+   "page_view",
+   null,
+   null,
+   "ios",
+   "false",
+   null
+  ],
+  [
+   "107.00",
+   "checkout",
+   "1000.00",
+   null,
+   null,
+   "false",
+   null
+  ],
+  [
+   "108.00",
+   "add_to_cart",
+   null,
+   null,
+   null,
+   "false",
+   null
+  ],
+  [
+   "109.00",
+   "promo_click",
+   "-5.00",
+   null,
+   null,
+   "true",
+   "NEGATIVE"
+  ],
+  [
+   "110.00",
+   "checkout",
+   "19.99",
+   null,
+   "web",
+   "false",
+   null
+  ],
+  [
+   "111.00",
+   "checkout",
+   "42.10",
+   null,
+   "android",
+   "false",
+   null
+  ]
+ ]
+}

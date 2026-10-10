@@ -1,0 +1,103 @@
+{
+ "id": "SQL-054",
+ "generated_from": "SQL-054.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": true,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "key_type",
+   "category": "text"
+  },
+  {
+   "name": "key_value",
+   "category": "text"
+  },
+  {
+   "name": "rank_in_type",
+   "category": "number"
+  },
+  {
+   "name": "txn_count",
+   "category": "number"
+  },
+  {
+   "name": "pct_of_total",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "customer",
+   "1001",
+   "1.00",
+   "529.00",
+   "2.49"
+  ],
+  [
+   "customer",
+   "(null)",
+   "2.00",
+   "302.00",
+   "1.42"
+  ],
+  [
+   "customer",
+   "1266",
+   "3.00",
+   "72.00",
+   "0.34"
+  ],
+  [
+   "customer",
+   "1390",
+   "4.00",
+   "72.00",
+   "0.34"
+  ],
+  [
+   "customer",
+   "2339",
+   "5.00",
+   "72.00",
+   "0.34"
+  ],
+  [
+   "store",
+   "6",
+   "1.00",
+   "3487.00",
+   "16.40"
+  ],
+  [
+   "store",
+   "1",
+   "2.00",
+   "1276.00",
+   "6.00"
+  ],
+  [
+   "store",
+   "7",
+   "3.00",
+   "767.00",
+   "3.61"
+  ],
+  [
+   "store",
+   "38",
+   "4.00",
+   "767.00",
+   "3.61"
+  ],
+  [
+   "store",
+   "33",
+   "5.00",
+   "756.00",
+   "3.56"
+  ]
+ ]
+}

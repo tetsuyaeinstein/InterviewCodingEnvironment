@@ -154,7 +154,16 @@ assertions:
 - `present` / `absent` / `row` match on the **result columns** (values are normalised like the
   comparison: numbers rounded, timestamps in UTC ISO format such as `2025-06-15T10:00:00+00:00`,
   dates as `YYYY-MM-DD`, booleans `true`/`false`).
-- `{student}` is replaced by the attempt's single statement (query/plan modes).
+- `{student}` is replaced by the attempt's single statement (query/plan modes). It is not
+  available in mutation mode, where `sql` assertions run over the sandbox tables instead.
+- `compare: columns_only` checks column names, not types. When a type matters, add an
+  assertion such as `SELECT bool_and(pg_typeof(x)::text = 'text') FROM ({student}) s`.
+- An assertion that quotes numbers from the *generated* data (counts, revenues, "N customers") only holds on
+  the small seed: tag it `profile: small` so it is skipped on medium/large. Assertions about hand-written
+  fixtures (customers 1-99, stores 1-5, FX-* CDC keys, ...) hold on every profile and need no tag. Check with
+  `lab db seed --size medium` then `lab verify --lang sql`.
+- Python tests that touch the database must derive expectations from an oracle query (see PY-044) or use only
+  fixture rows, never hard-code IDs of generated rows.
 - Aim for 4–10 assertions per exercise. Each should target a specific fixture edge case.
 
 ---

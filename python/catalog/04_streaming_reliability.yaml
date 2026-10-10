@@ -1,0 +1,111 @@
+topic: 04_streaming_reliability
+exercises:
+  - id: PY-031
+    title: Order-aware current state from out-of-order events
+    difficulty: medium
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-031.py
+    functions: [CurrentState, Event, Conflict]
+    prerequisites: [PY-024]
+    tags: [out-of-order, tombstones, cdc, determinism, conflicts, idempotency]
+
+  - id: PY-032
+    title: Idempotent consumer with an atomic state store
+    difficulty: medium
+    estimated_minutes: 35
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-032.py
+    functions: [IdempotentConsumer, Event, ConflictingEvent, StoreError]
+    prerequisites: []
+    tags: [idempotency, exactly-once, at-least-once, atomicity, dedup, crash-recovery]
+
+  - id: PY-033
+    title: Retry transient failures with capped exponential backoff
+    difficulty: medium
+    estimated_minutes: 30
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-033.py
+    functions: [retry, RetryError, TransientError]
+    prerequisites: []
+    tags: [retry, backoff, jitter, injectable-clock, error-handling, reliability]
+
+  - id: PY-034
+    title: Checkpointed batches that survive a crash at any point
+    difficulty: hard
+    estimated_minutes: 40
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-034.py
+    functions: [run_batches, BadRecord, DeadLetter, RunReport]
+    prerequisites: [PY-032]
+    tags: [checkpointing, crash-recovery, idempotent-sink, exactly-once, dead-letter, micro-batch]
+
+  - id: PY-035
+    title: Event-time tumbling windows with a watermark and late events
+    difficulty: hard
+    estimated_minutes: 40
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-035.py
+    functions: [TumblingWindows, Event, WindowResult]
+    prerequisites: []
+    tags: [windowing, watermark, late-data, event-time, side-output, time-zones, flink]
+
+  - id: PY-036
+    title: Apply SCD2 customer changes in order without overlapping intervals
+    difficulty: hard
+    estimated_minutes: 40
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-036.py
+    functions: [apply_scd2, Rejected, Scd2Result]
+    prerequisites: []
+    tags: [scd2, dimensional-modeling, effective-dating, half-open-intervals, late-data, invariants]
+
+  - id: PY-037
+    title: Null-safe canonical record fingerprint with schema evolution
+    difficulty: easy
+    estimated_minutes: 20
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-037.py
+    functions: [fingerprint]
+    prerequisites: []
+    tags: [hashing, canonicalisation, nulls, schema-evolution, change-detection, datetime]
+
+  - id: PY-038
+    title: Bounded pipeline with backpressure and clean failure
+    difficulty: hard
+    estimated_minutes: 45
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-038.py
+    functions: [run_pipeline]
+    prerequisites: []
+    tags: [backpressure, threading, bounded-queue, concurrency, ordering, error-propagation, deadlock]
+
+  - id: PY-039
+    title: Exact duplicate messages versus conflicting payloads for one ID
+    difficulty: easy
+    estimated_minutes: 20
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-039.py
+    functions: [classify_messages, Classification, Delivered, Conflict]
+    prerequisites: []
+    tags: [deduplication, canonicalisation, conflicts, hashing, decimal, at-least-once]
+
+  - id: PY-040
+    title: Incremental purchase streaks with late-arriving days
+    difficulty: hard
+    estimated_minutes: 40
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/04_streaming_reliability/PY-040.py
+    functions: [StreakTracker, StreakChange]
+    prerequisites: []
+    tags: [incremental, interval-merging, late-data, gaps-and-islands, streaming-state, oracle-testing]

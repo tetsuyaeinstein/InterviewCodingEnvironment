@@ -1,0 +1,34 @@
+# Hand-written, fixture-based assertions (independent of the reference solution).
+# Fixtures: 51 overlapping versions 511/512; 52 two current open-ended rows 521/522;
+# 55 open-ended row 551 with is_current = false; 56 adjacent versions touching at 2024-07-01.
+assertions:
+  - name: "customer 51: versions 511 and 512 overlap on [2025-01-15, 2025-02-01), reported once"
+    row: {customer_id: 51, issue_type: OVERLAPPING_VERSIONS}
+    count: 1
+    expect: {customer_sk: 511, other_customer_sk: 512,
+             overlap_from: "2025-01-15T00:00:00+00:00", overlap_to: "2025-02-01T00:00:00+00:00"}
+  - name: "customer 52: the two open-ended current versions also overlap, from 2024-06-01 to the sentinel"
+    row: {customer_id: 52, issue_type: OVERLAPPING_VERSIONS}
+    count: 1
+    expect: {customer_sk: 521, other_customer_sk: 522,
+             overlap_from: "2024-06-01T00:00:00+00:00", overlap_to: "9999-12-31T00:00:00+00:00"}
+  - name: "customer 52: both current versions (521 and 522) are reported as MULTIPLE_CURRENT"
+    sql: >-
+      SELECT array_agg(customer_sk ORDER BY customer_sk) = ARRAY[521, 522]::bigint[]
+      FROM ({student}) s WHERE s.customer_id = 52 AND s.issue_type = 'MULTIPLE_CURRENT'
+  - name: "customer 55: open-ended version 551 that is not flagged current is reported"
+    row: {customer_id: 55, issue_type: OPEN_BUT_NOT_CURRENT}
+    count: 1
+    expect: {customer_sk: 551, other_customer_sk: null}
+  - name: "customer 56 (versions touching exactly at 2024-07-01) is NOT reported"
+    absent: {customer_id: 56}
+  - name: "customer 50 (clean history with one change) is not reported"
+    absent: {customer_id: 50}
+  - name: "no version is paired with itself and no pair is reported in both directions"
+    sql: >-
+      SELECT count(*) = 0 FROM ({student}) s
+      WHERE s.issue_type = 'OVERLAPPING_VERSIONS' AND NOT (s.customer_sk < s.other_customer_sk)
+  - name: "only the four defined issue codes are used"
+    sql: >-
+      SELECT count(*) = 0 FROM ({student}) s
+      WHERE s.issue_type NOT IN ('OVERLAPPING_VERSIONS', 'MULTIPLE_CURRENT', 'CLOSED_BUT_CURRENT', 'OPEN_BUT_NOT_CURRENT')

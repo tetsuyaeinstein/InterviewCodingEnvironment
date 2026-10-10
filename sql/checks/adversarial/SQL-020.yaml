@@ -1,0 +1,38 @@
+# Hand-written assertions: ledger accounts 1-5 (January 2025), see DATA_DICTIONARY.
+assertions:
+  - name: "account 1, entry 2 (-30.00 at 01-02 09:00): balance 70.00, positive"
+    row: {account_id: 1, entry_id: 2}
+    expect: {running_balance: 70.00, is_negative: false, enters_negative: false}
+  - name: "account 1, entry 3 (-80.00, same timestamp as entry 2): balance -10.00, this entry enters the red"
+    row: {account_id: 1, entry_id: 3}
+    expect: {running_balance: -10.00, is_negative: true, enters_negative: true}
+  - name: "account 1, entry 4: back to 40.00, not negative"
+    row: {account_id: 1, entry_id: 4}
+    expect: {running_balance: 40.00, is_negative: false, enters_negative: false}
+  - name: "account 1, entry 5 (posted exactly at 2025-01-05 00:00:00): balance 35.00"
+    row: {account_id: 1, entry_id: 5}
+    expect: {running_balance: 35.00, is_negative: false}
+  - name: "account 3, entry 8: negative from the first entry (-20.00), and it enters negative"
+    row: {account_id: 3, entry_id: 8}
+    expect: {running_balance: -20.00, is_negative: true, enters_negative: true}
+  - name: "account 3, entry 9: balance exactly 0.00 is not negative"
+    row: {account_id: 3, entry_id: 9}
+    expect: {running_balance: 0.00, is_negative: false, enters_negative: false}
+  - name: "account 5, entry 11 (higher id but earliest in time) is applied first: balance 40.00"
+    row: {account_id: 5, entry_id: 11}
+    expect: {running_balance: 40.00, is_negative: false}
+  - name: "account 5, entry 10 (01-03 09:00, lower id): balance 28.00"
+    row: {account_id: 5, entry_id: 10}
+    expect: {running_balance: 28.00}
+  - name: "account 5, entry 12 (same timestamp as entry 10, higher id): balance exactly 0.00, not negative"
+    row: {account_id: 5, entry_id: 12}
+    expect: {running_balance: 0.00, is_negative: false}
+  - name: "account 2, entry 7: 200.00 - 45.50 = 154.50"
+    row: {account_id: 2, entry_id: 7}
+    expect: {running_balance: 154.50}
+  - name: "account 4 (no entries) produces no rows"
+    absent: {account_id: 4}
+  - name: "12 rows, one per entry, no NULL flags"
+    sql: "SELECT count(*) = 12 AND count(DISTINCT entry_id) = 12 AND count(*) FILTER (WHERE is_negative IS NULL OR enters_negative IS NULL) = 0 FROM ({student}) s"
+  - name: "exactly two entries push an account below zero (account 1 entry 3, account 3 entry 8)"
+    sql: "SELECT array_agg(entry_id ORDER BY entry_id) = ARRAY[3, 8]::bigint[] FROM ({student}) s WHERE enters_negative"

@@ -1,5 +1,83 @@
 topic: 05_cdc_data_quality
 exercises:
+  - id: SQL-041
+    title: Current state of every CDC key (latest by commit order)
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [cdc_transaction_events]
+    output: [source_system, business_key, cdc_event_id, last_operation, source_lsn, amount, status, is_deleted, has_lsn_conflict]
+    prerequisites: []
+    tags: [cdc, deduplication, latest-record, window-functions, jsonb, tie-breaking]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-042
+    title: Rows for the next incremental run (watermark with overlap)
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [pipeline_watermarks, transactions]
+    output: [transaction_id, ingested_at, is_overlap_reread]
+    prerequisites: []
+    tags: [incremental-load, watermark, overlap-window, half-open-interval, idempotency]
+    check:
+      ordered: false
+      require_patterns:
+        - pattern: "pipeline_watermarks"
+          message: "read the current watermark from pipeline_watermarks instead of hard-coding it"
+
+  - id: SQL-043
+    title: Late-arriving sales missed by the daily report
+    difficulty: easy
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [pipeline_watermarks, transactions]
+    output: [business_date, late_txn_count, late_amount, reported_amount, final_amount, late_pct]
+    prerequisites: [SQL-042]
+    tags: [late-arriving-data, watermark, conditional-aggregation, data-quality]
+    check:
+      ordered: false
+      decimals: 2
+      require_patterns:
+        - pattern: "pipeline_watermarks"
+          message: "read the reporting cut-off from pipeline_watermarks instead of hard-coding it"
+
+  - id: SQL-044
+    title: Source vs target reconciliation with column-level differences
+    difficulty: medium
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [source_transactions, target_transactions]
+    output: [transaction_id, diff_type, diff_columns]
+    prerequisites: []
+    tags: [reconciliation, full-outer-join, null-safe-comparison, data-quality, except]
+    check:
+      ordered: false
+
+  - id: SQL-045
+    title: Null-safe, unambiguous row fingerprints for change detection
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: query
+    requires_database: true
+    tables: [source_transactions, target_transactions]
+    output: [system, transaction_id, row_fingerprint]
+    prerequisites: [SQL-044]
+    tags: [hashing, change-detection, null-handling, reconciliation, data-quality]
+    check:
+      ordered: false
+      compare: columns_only
+      columns: [system, transaction_id, row_fingerprint]
+      forbid_patterns:
+        - pattern: "\\bpublic\\s*\\."
+          message: "reference source_transactions / target_transactions without a schema prefix (the grader re-runs your query against extra test rows)"
+
   - id: SQL-046
     title: Incremental upsert of a CDC batch with ON CONFLICT
     difficulty: medium
@@ -43,3 +121,158 @@ exercises:
       require_patterns:
         - pattern: "ON\\s+CONFLICT"
           message: "use PostgreSQL's native upsert: INSERT ... ON CONFLICT ... DO UPDATE"
+
+  - id: SQL-047
+    title: Apply a CDC batch with deletes and tombstones (no resurrection)
+    difficulty: hard
+    estimated_minutes: 35
+    validation_mode: mutation
+    requires_database: true
+    tables: [txn_current (sandbox), txn_tombstone (sandbox), cdc_batch (sandbox)]
+    sandbox_tables: [txn_current, txn_tombstone, cdc_batch]
+    output: [txn_current, txn_tombstone]
+    prerequisites: [SQL-041, SQL-046]
+    tags: [cdc, deletes, tombstones, merge, upsert, out-of-order-events]
+    check:
+      setup:
+        - |
+          CREATE TABLE txn_current (
+              source_system text          NOT NULL,
+              business_key  text          NOT NULL,
+              amount        numeric(12,2) NOT NULL,
+              status        text          NOT NULL,
+              source_lsn    bigint        NOT NULL,
+              PRIMARY KEY (source_system, business_key)
+          )
+        - |
+          INSERT INTO txn_current VALUES
+              ('POS',  'FX-0001',  60.00, 'COMPLETED', 9000030),
+              ('ECOM', 'FX-0001', 510.00, 'COMPLETED', 9000020),
+              ('POS',  'FX-0009',   9.00, 'COMPLETED', 9000810)
+        - |
+          CREATE TABLE txn_tombstone (
+              source_system text   NOT NULL,
+              business_key  text   NOT NULL,
+              deleted_lsn   bigint NOT NULL,
+              PRIMARY KEY (source_system, business_key)
+          )
+        - |
+          INSERT INTO txn_tombstone VALUES
+              ('POS',  'FX-0002', 9000120),
+              ('POS',  'FX-0010', 9000900),
+              ('ECOM', 'FX-0003', 9500000)
+        - |
+          CREATE TABLE cdc_batch AS
+          SELECT cdc_event_id,
+                 source_system,
+                 business_key,
+                 operation::text                      AS operation,
+                 source_lsn,
+                 (payload->>'amount')::numeric(12,2)  AS amount,
+                 payload->>'status'                   AS status
+          FROM public.cdc_transaction_events
+          WHERE business_key LIKE 'FX-%'
+            AND ingested_at >= '2025-12-31 11:10:00+00'
+      verify: |
+        SELECT 'CURRENT' AS state, source_system, business_key, amount, status, source_lsn
+        FROM txn_current
+        UNION ALL
+        SELECT 'DELETED', source_system, business_key, NULL::numeric, NULL::text, deleted_lsn
+        FROM txn_tombstone
+      ordered: false
+      decimals: 2
+
+  - id: SQL-048
+    title: Idempotent restatement of a daily sales summary
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: mutation
+    requires_database: true
+    tables: [daily_store_sales (sandbox), stg_sales_batch (sandbox)]
+    sandbox_tables: [daily_store_sales, stg_sales_batch]
+    output: [daily_store_sales]
+    prerequisites: [SQL-046]
+    tags: [idempotency, incremental-load, partition-overwrite, delete-insert, merge, deduplication]
+    check:
+      setup:
+        - |
+          CREATE TABLE daily_store_sales (
+              sales_date   date          NOT NULL,
+              store_id     integer       NOT NULL,
+              txn_count    integer       NOT NULL,
+              gross_amount numeric(14,2) NOT NULL,
+              PRIMARY KEY (sales_date, store_id)
+          )
+        - |
+          INSERT INTO daily_store_sales
+          SELECT (transaction_ts AT TIME ZONE 'UTC')::date, store_id, count(*), sum(gross_amount)
+          FROM public.transactions
+          WHERE transaction_status = 'COMPLETED'
+            AND transaction_ts >= '2025-12-01 00:00:00+00'
+            AND transaction_ts <  '2025-12-10 00:00:00+00'
+            AND ingested_at    <  '2025-12-09 06:00:00+00'
+          GROUP BY 1, 2
+        - |
+          INSERT INTO daily_store_sales VALUES ('2025-12-09', 4, 1, 25.00)
+        - |
+          CREATE TABLE stg_sales_batch (
+              delivery_id        bigint PRIMARY KEY,
+              transaction_id     bigint        NOT NULL,
+              store_id           integer       NOT NULL,
+              transaction_ts     timestamptz   NOT NULL,
+              transaction_status text          NOT NULL,
+              gross_amount       numeric(12,2) NOT NULL
+          )
+        - |
+          INSERT INTO stg_sales_batch
+          WITH src AS (
+              SELECT transaction_id, store_id, transaction_ts, transaction_status, gross_amount
+              FROM public.transactions
+              WHERE transaction_ts >= '2025-12-08 00:00:00+00'
+                AND transaction_ts <  '2025-12-11 00:00:00+00'
+          )
+          SELECT transaction_id * 10 + 1, transaction_id, store_id, transaction_ts,
+                 CASE WHEN transaction_status = 'COMPLETED' AND transaction_id % 10 = 3 THEN 'PENDING'
+                      ELSE transaction_status END,
+                 CASE WHEN transaction_id % 19 = 0 THEN gross_amount + 5.00 ELSE gross_amount END
+          FROM src
+          UNION ALL
+          SELECT transaction_id * 10 + 2, transaction_id, store_id, transaction_ts, transaction_status, gross_amount
+          FROM src
+          WHERE transaction_id % 4 = 0
+             OR (transaction_status = 'COMPLETED' AND transaction_id % 10 = 3)
+             OR transaction_id % 19 = 0
+          UNION ALL
+          SELECT transaction_id * 10 + 3, transaction_id, store_id, transaction_ts, 'CANCELLED', gross_amount
+          FROM src
+          WHERE transaction_status = 'COMPLETED' AND transaction_id % 17 = 0
+      runs: 2
+      verify: SELECT sales_date, store_id, txn_count, gross_amount FROM daily_store_sales
+      ordered: false
+      decimals: 2
+
+  - id: SQL-049
+    title: Commit order vs arrival order - CDC sequence anomalies
+    difficulty: hard
+    estimated_minutes: 35
+    validation_mode: query
+    requires_database: true
+    tables: [cdc_transaction_events]
+    output: [cdc_event_id, source_system, business_key, operation, source_lsn, issue_type, related_event_id]
+    prerequisites: [SQL-041]
+    tags: [cdc, out-of-order-events, window-functions, data-quality, precedence-rules]
+    check:
+      ordered: false
+
+  - id: SQL-050
+    title: Safe committed watermark after failed and retried batches
+    difficulty: medium
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [pipeline_runs, pipeline_watermarks]
+    output: [source_system, safe_watermark, recorded_watermark, recorded_is_unsafe, next_window_status]
+    prerequisites: [SQL-042]
+    tags: [watermark, gaps-and-islands, pipeline-monitoring, retries, recursive-cte]
+    check:
+      ordered: false

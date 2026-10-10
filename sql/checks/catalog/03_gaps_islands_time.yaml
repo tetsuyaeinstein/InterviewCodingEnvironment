@@ -12,3 +12,122 @@ exercises:
     tags: [gaps-and-islands, window-functions, deduplication, dates, scale]
     check:
       ordered: false
+
+  - id: SQL-022
+    title: Every purchase streak with start, end and length
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [customer_id, streak_start, streak_end, streak_days]
+    prerequisites: [SQL-021]
+    tags: [gaps-and-islands, window-functions, deduplication, dates]
+    check:
+      ordered: false
+
+  - id: SQL-023
+    title: Longest purchase streak per customer with a deterministic tie-break
+    difficulty: medium
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [customer_id, longest_streak_days, streak_start, streak_end, tied_streaks]
+    prerequisites: [SQL-022]
+    tags: [gaps-and-islands, window-functions, ties, top-n-per-group, dates]
+    check:
+      ordered: false
+
+  - id: SQL-024
+    title: Five consecutive days with daily spend above 100
+    difficulty: hard
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [customer_id, run_start, run_end, run_days]
+    prerequisites: [SQL-021]
+    tags: [gaps-and-islands, aggregation-grain, thresholds, window-functions]
+    check:
+      ordered: false
+
+  - id: SQL-025
+    title: Day-7 and first-week retention of the February cohort
+    difficulty: easy
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [customer_id, first_purchase_date, retained_day_7, retained_week_1]
+    prerequisites: []
+    tags: [retention, cohorts, dates, left-join]
+    check:
+      ordered: false
+
+  - id: SQL-026
+    title: Sessionize clickstream events with a 30-minute inactivity rule
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [customer_events]
+    output: [customer_id, session_number, session_start, session_end, event_count]
+    prerequisites: [SQL-021]
+    tags: [sessionization, window-functions, timestamps, tie-break]
+    check:
+      ordered: false
+
+  - id: SQL-027
+    title: Merge overlapping downtime incidents and total the minutes
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: query
+    requires_database: true
+    tables: [device_downtime_incidents]
+    output: [device_id, outage_count, downtime_minutes]
+    prerequisites: [SQL-026]
+    tags: [interval-merging, gaps-and-islands, window-functions, ranges]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-028
+    title: Point-in-time list price for each sales line
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, transaction_items, product_price_history]
+    output: [transaction_id, line_number, product_id, transaction_ts, unit_price, list_price, price_diff]
+    prerequisites: []
+    tags: [point-in-time, temporal-join, half-open-intervals, scd]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-029
+    title: Were all selected products available at checkout time?
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, store_product_availability]
+    output: [transaction_id, transaction_ts, all_available, any_available, available_products]
+    prerequisites: [SQL-028]
+    tags: [point-in-time, relational-division, half-open-intervals, booleans]
+    check:
+      ordered: false
+
+  - id: SQL-030
+    title: Gaps in daily device reports
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: query
+    requires_database: true
+    tables: [devices, device_status_events]
+    output: [device_id, gap_start, gap_end, missing_days]
+    prerequisites: [SQL-022]
+    tags: [gaps-and-islands, calendar, anti-join, late-data, dates]
+    check:
+      ordered: false

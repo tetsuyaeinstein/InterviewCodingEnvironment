@@ -1,0 +1,77 @@
+{
+ "id": "SQL-009",
+ "generated_from": "SQL-009.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "segment",
+   "category": "text"
+  },
+  {
+   "name": "customers",
+   "category": "number"
+  },
+  {
+   "name": "customers_without_purchases",
+   "category": "number"
+  },
+  {
+   "name": "completed_txn_count",
+   "category": "number"
+  },
+  {
+   "name": "total_completed_amount",
+   "category": "number"
+  },
+  {
+   "name": "avg_txn_value",
+   "category": "number"
+  },
+  {
+   "name": "avg_spend_per_customer",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "PILOT",
+   "2.00",
+   "2.00",
+   "0.00",
+   "0.00",
+   null,
+   "0.00"
+  ],
+  [
+   "ENTERPRISE",
+   "161.00",
+   "2.00",
+   "1552.00",
+   "87342.61",
+   "56.28",
+   "542.50"
+  ],
+  [
+   "CONSUMER",
+   "1527.00",
+   "56.00",
+   "10202.00",
+   "562420.62",
+   "55.13",
+   "368.32"
+  ],
+  [
+   "SMALL_BUSINESS",
+   "366.00",
+   "16.00",
+   "2349.00",
+   "130594.71",
+   "55.60",
+   "356.82"
+  ]
+ ]
+}

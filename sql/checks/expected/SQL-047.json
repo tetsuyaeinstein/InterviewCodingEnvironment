@@ -1,0 +1,133 @@
+{
+ "id": "SQL-047",
+ "generated_from": "SQL-047.sql",
+ "seed_profile": "small",
+ "seed_version": 1,
+ "seed_checksum": "c5f7bde53a61d19fa891a461b2f61171",
+ "ordered": false,
+ "decimals": 2,
+ "columns": [
+  {
+   "name": "state",
+   "category": "text"
+  },
+  {
+   "name": "source_system",
+   "category": "text"
+  },
+  {
+   "name": "business_key",
+   "category": "text"
+  },
+  {
+   "name": "amount",
+   "category": "number"
+  },
+  {
+   "name": "status",
+   "category": "text"
+  },
+  {
+   "name": "source_lsn",
+   "category": "number"
+  }
+ ],
+ "rows": [
+  [
+   "CURRENT",
+   "POS",
+   "FX-0001",
+   "60.00",
+   "COMPLETED",
+   "9000030.00"
+  ],
+  [
+   "CURRENT",
+   "ECOM",
+   "FX-0001",
+   "510.00",
+   "COMPLETED",
+   "9000020.00"
+  ],
+  [
+   "CURRENT",
+   "POS",
+   "FX-0009",
+   "9.00",
+   "COMPLETED",
+   "9000810.00"
+  ],
+  [
+   "CURRENT",
+   "POS",
+   "FX-0010",
+   "7.00",
+   "COMPLETED",
+   "9000940.00"
+  ],
+  [
+   "CURRENT",
+   "POS",
+   "FX-0005",
+   "15.00",
+   "COMPLETED",
+   "9000430.00"
+  ],
+  [
+   "CURRENT",
+   "POS",
+   "FX-0003",
+   "35.00",
+   "COMPLETED",
+   "9000230.00"
+  ],
+  [
+   "CURRENT",
+   "POS",
+   "FX-0008",
+   "95.00",
+   "COMPLETED",
+   "9000720.00"
+  ],
+  [
+   "CURRENT",
+   "POS",
+   "FX-0006",
+   "80.00",
+   "COMPLETED",
+   "9000520.00"
+  ],
+  [
+   "CURRENT",
+   "POS",
+   "FX-0004",
+   "40.00",
+   "COMPLETED",
+   "9000320.00"
+  ],
+  [
+   "DELETED",
+   "POS",
+   "FX-0002",
+   null,
+   null,
+   "9000120.00"
+  ],
+  [
+   "DELETED",
+   "ECOM",
+   "FX-0003",
+   null,
+   null,
+   "9500000.00"
+  ],
+  [
+   "DELETED",
+   "POS",
+   "FX-0007",
+   null,
+   null,
+   "9000610.00"
+  ]
+ ]
+}

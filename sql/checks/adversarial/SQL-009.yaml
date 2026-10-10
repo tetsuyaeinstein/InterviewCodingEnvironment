@@ -1,0 +1,17 @@
+# Hand-written, fixture-based assertions. PILOT = customers 32 (no transactions) and 33 (one CANCELLED).
+assertions:
+  - name: "PILOT is present: 2 customers, both without purchases, 0 transactions, 0.00 amount"
+    row: {segment: PILOT}
+    expect: {customers: 2, customers_without_purchases: 2, completed_txn_count: 0, total_completed_amount: 0.00}
+  - name: "PILOT average transaction value is NULL (undefined), not 0 and not an error"
+    row: {segment: PILOT}
+    expect: {avg_txn_value: null}
+  - name: "PILOT average spend per customer is 0.00 (non-buyers are in the denominator)"
+    row: {segment: PILOT}
+    expect: {avg_spend_per_customer: 0.00}
+  - name: "exactly one row per segment (4 rows)"
+    sql: "SELECT count(*) = 4 AND count(DISTINCT segment) = 4 FROM ({student}) s"
+  - name: "customers add up to the whole customer table"
+    sql: "SELECT sum(s.customers) = (SELECT count(*) FROM customers) FROM ({student}) s"
+  - name: "ENTERPRISE average is per transaction (the heavy account 1001 weighs by its number of transactions)"
+    sql: "SELECT round(s.avg_txn_value, 2) = (SELECT round(sum(t.gross_amount) / count(*), 2) FROM transactions t JOIN customers c ON c.customer_id = t.customer_id WHERE c.segment = 'ENTERPRISE' AND t.transaction_status = 'COMPLETED' AND t.transaction_ts >= TIMESTAMPTZ '2025-01-01 00:00:00+00' AND t.transaction_ts < TIMESTAMPTZ '2026-01-01 00:00:00+00') FROM ({student}) s WHERE s.segment = 'ENTERPRISE'"

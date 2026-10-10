@@ -1,0 +1,32 @@
+# CDC fixtures (database/DATA_DICTIONARY.md, "CDC"). cdc_event_id = arrival order.
+assertions:
+  - name: "FX-0001: the lsn 9000020 update arrived after lsn 9000030 (event 3773) had already arrived"
+    row: {cdc_event_id: 3774}
+    expect: {issue_type: STALE_ARRIVAL, related_event_id: 3773}
+  - name: "FX-0002: the update (9000115) arrived after the delete (event 3777)"
+    row: {cdc_event_id: 3778}
+    expect: {issue_type: STALE_ARRIVAL, related_event_id: 3777}
+  - name: "FX-0004: the second, identical delivery is a duplicate of event 3783; the first copy is not flagged"
+    sql: >-
+      SELECT bool_and(issue_type = 'DUPLICATE_DELIVERY' AND related_event_id = 3783) AND count(*) = 1
+      FROM ({student}) s WHERE cdc_event_id IN (3782, 3783, 3784)
+  - name: "FX-0006: both events sharing lsn 9000520 with different payloads are conflicts, pointing at each other"
+    sql: >-
+      SELECT count(*) = 2
+      FROM ({student}) s
+      WHERE (cdc_event_id, issue_type, related_event_id) IN ((3789, 'LSN_CONFLICT', 3790), (3790, 'LSN_CONFLICT', 3789))
+  - name: "FX-0005: 9000420 is a stale arrival (precedence over the commit_ts tie); 9000430 only has the tie"
+    sql: >-
+      SELECT count(*) = 2
+      FROM ({student}) s
+      WHERE (cdc_event_id, issue_type) IN ((3787, 'STALE_ARRIVAL'), (3786, 'COMMIT_TS_TIE'))
+  - name: "FX-0008: the insert arrived after its own update (event 3792)"
+    row: {cdc_event_id: 3793}
+    expect: {issue_type: STALE_ARRIVAL, related_event_id: 3792}
+  - name: "FX-0007: a delete with no earlier insert"
+    row: {cdc_event_id: 3791}
+    expect: {issue_type: ORPHAN_CHANGE, related_event_id: null}
+  - name: "control key FX-0010, the cross-system ECOM FX-0001 and FX-0003 (legitimate re-insert after a delete) are clean"
+    sql: "SELECT count(*) = 0 FROM ({student}) s WHERE business_key IN ('FX-0010', 'FX-0003') OR (source_system = 'ECOM' AND business_key = 'FX-0001')"
+  - name: "one row per flagged event"
+    sql: "SELECT count(*) = count(DISTINCT cdc_event_id) FROM ({student}) s"

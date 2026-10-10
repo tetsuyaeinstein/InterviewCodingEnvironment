@@ -1,0 +1,137 @@
+topic: 01_foundations
+exercises:
+  - id: SQL-001
+    title: Lifetime completed spend per customer, zeros included
+    difficulty: easy
+    estimated_minutes: 10
+    validation_mode: query
+    requires_database: true
+    tables: [customers, transactions]
+    output: [customer_id, completed_txn_count, total_completed_spend]
+    prerequisites: []
+    tags: [outer-join, aggregation, null-handling, coalesce]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-002
+    title: Daily completed sales per store for a fixed date range
+    difficulty: easy
+    estimated_minutes: 10
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [store_id, business_date, completed_txn_count, gross_amount]
+    prerequisites: [SQL-001]
+    tags: [aggregation, dates, half-open-interval, sargable-predicates]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-003
+    title: Customers inactive in the last 90 days
+    difficulty: easy
+    estimated_minutes: 12
+    validation_mode: query
+    requires_database: true
+    tables: [customers, transactions]
+    output: [customer_id, last_completed_purchase_date]
+    prerequisites: [SQL-001]
+    tags: [anti-join, dates, boundaries, null-handling, retention]
+    check:
+      ordered: false
+
+  - id: SQL-004
+    title: Classify duplicate deliveries in an at-least-once event feed
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: query
+    requires_database: true
+    tables: [raw_transaction_events]
+    output: [transaction_id, deliveries, distinct_messages, created_messages, status_change_messages, has_redelivery, classification]
+    prerequisites: [SQL-001]
+    tags: [deduplication, idempotency, at-least-once, jsonb, conditional-aggregation, data-quality]
+    check:
+      ordered: false
+
+  - id: SQL-005
+    title: Q4 net spend after refunds without join fan-out
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, transaction_items, refunds]
+    output: [customer_id, completed_txn_count, items_sold, gross_spend, refunded_amount, net_spend]
+    prerequisites: [SQL-001]
+    tags: [fan-out, pre-aggregation, refunds, joins, grain]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-006
+    title: Store status mix for 2025 in one row per store
+    difficulty: easy
+    estimated_minutes: 12
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [store_id, total_txn_count, completed_count, completed_amount, pending_count, pending_amount, cancelled_count, cancelled_amount, declined_count]
+    prerequisites: [SQL-002]
+    tags: [conditional-aggregation, pivot, null-handling]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-007
+    title: Orphan and broken lines in the staging table
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [stg_transaction_items, transactions, products]
+    output: [load_batch_id, transaction_id, line_number, product_id, issue]
+    prerequisites: [SQL-003]
+    tags: [anti-join, referential-integrity, null-handling, data-quality, staging]
+    check:
+      ordered: false
+
+  - id: SQL-008
+    title: Top revenue categories at one store with ties
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, transaction_items, products, product_categories]
+    output: [category_name, gross_revenue, discount_amount, net_revenue, revenue_dense_rank, revenue_rank]
+    prerequisites: [SQL-002]
+    tags: [ranking, ties, joins, discounts, window-functions]
+    check:
+      ordered: true
+      decimals: 2
+
+  - id: SQL-009
+    title: Average completed transaction value by customer segment
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [customers, transactions]
+    output: [segment, customers, customers_without_purchases, completed_txn_count, total_completed_amount, avg_txn_value, avg_spend_per_customer]
+    prerequisites: [SQL-001]
+    tags: [outer-join, aggregation, averages, division-by-zero, null-handling]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-010
+    title: Bought product A but never product B
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [transactions, transaction_items]
+    output: [customer_id]
+    prerequisites: [SQL-003]
+    tags: [anti-join, set-operations, null-handling, semi-join]
+    check:
+      ordered: false

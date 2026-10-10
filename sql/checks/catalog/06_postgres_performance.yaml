@@ -1,0 +1,254 @@
+topic: 06_postgres_performance
+exercises:
+  - id: SQL-051
+    title: Read an EXPLAIN (ANALYZE, BUFFERS) plan for a customer statement query
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: plan
+    requires_database: true
+    tables: [transactions]
+    output: [transaction_id, transaction_ts, store_id, gross_amount]
+    prerequisites: []
+    tags: [explain-analyze, query-plans, indexes, cardinality-estimation, buffers]
+    check:
+      ordered: true
+      decimals: 2
+      plan_expect:
+        - name: "transactions is read through an index, not a full Seq Scan"
+          pattern: "Seq Scan on transactions"
+          absent: true
+          severity: advisory
+        - name: "a Filter discards rows the chosen index could not exclude (Rows Removed by Filter): explain why"
+          pattern: "Rows Removed by Filter"
+          severity: advisory
+        - name: "the ORDER BY needs a sort step (Sort / Incremental Sort): explain what is presorted"
+          pattern: "^\\s*(->\\s+)?(Incremental\\s+)?Sort\\s+\\("
+          severity: advisory
+
+  - id: SQL-052
+    title: Make a one-day filter sargable (half-open timestamp range)
+    difficulty: medium
+    estimated_minutes: 15
+    validation_mode: plan
+    requires_database: true
+    tables: [transactions]
+    output: [store_id, completed_txns, gross_sales]
+    prerequisites: [SQL-051]
+    tags: [sargability, half-open-interval, indexes, query-plans, time-zones]
+    check:
+      ordered: false
+      decimals: 2
+      forbid_patterns:
+        - pattern: 'transaction_ts\s*::'
+          message: "do not cast transaction_ts in the query: a cast on the column is exactly what made the original filter non-sargable"
+        - pattern: 'transaction_ts\s+AT\s+TIME\s+ZONE'
+          message: "do not convert transaction_ts with AT TIME ZONE in the filter: compare the raw column with constant bounds"
+        - pattern: '\b(date_trunc|date_part|extract|to_char|timezone|date)\s*\('
+          message: "do not wrap the timestamp in a date function: compare the raw column with constant bounds"
+        - pattern: '\bCAST\s*\(\s*(\w+\s*\.\s*)?transaction_ts\b'
+          message: "do not CAST transaction_ts: compare the raw column with constant bounds"
+        - pattern: '\bBETWEEN\b'
+          message: "express the day as a half-open range [start, next start), not BETWEEN"
+      plan_expect:
+        - name: "the one-day range is answered from ix_transactions_ts (Index Scan or Bitmap Index Scan)"
+          pattern: 'ix_transactions_ts\b'
+          severity: required
+        - name: "transactions is not read with a full Seq Scan"
+          pattern: 'Seq Scan on transactions'
+          absent: true
+          severity: required
+        - name: "the time bounds appear as an Index Cond on transaction_ts (not as a Filter)"
+          pattern: 'Index Cond: \(\(transaction_ts >='
+          severity: advisory
+
+  - id: SQL-053
+    title: Composite index column order for equality + range + ORDER BY ... LIMIT
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: plan
+    requires_database: true
+    tables: [txn_copy (sandbox copy of transactions)]
+    sandbox_tables: [txn_copy]
+    output: [transaction_id, transaction_ts, store_id, gross_amount]
+    prerequisites: [SQL-051]
+    tags: [composite-index, column-order, index-scan, order-by-limit, explain-analyze]
+    check:
+      ordered: true
+      decimals: 2
+      sandbox: true
+      setup:
+        - "CREATE TABLE txn_copy AS SELECT * FROM public.transactions"
+        - "ANALYZE txn_copy"
+      plan_expect:
+        - name: "txn_copy is read with an Index (Only) Scan (your index was used)"
+          pattern: 'Index (Only )?Scan using \w+ on txn_copy'
+          severity: required
+        - name: "the index condition starts with the equality on customer_id (customer_id is the leading index column)"
+          pattern: 'Index Cond: \(\(customer_id = 1001\)'
+          severity: required
+        - name: "no Sort / Incremental Sort node: the index delivers rows already ordered by transaction_ts"
+          pattern: '^\s*(->\s+)?(Incremental\s+)?Sort\s+\('
+          absent: true
+          severity: required
+        - name: "no Seq Scan on txn_copy"
+          pattern: 'Seq Scan on txn_copy'
+          absent: true
+          severity: required
+        - name: "the scan stops early: Rows Removed by Filter is absent (every index entry visited was useful)"
+          pattern: 'Rows Removed by Filter'
+          absent: true
+          severity: advisory
+
+  - id: SQL-054
+    title: Quantify key skew before choosing a distribution key (stores, customers, guest NULL)
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: modeling
+    requires_database: true
+    tables: [transactions]
+    output: [key_type, key_value, rank_in_type, txn_count, pct_of_total]
+    prerequisites: []
+    tags: [data-skew, distribution-key, synapse, spark, salting, null-keys, data-modeling]
+    check:
+      ordered: true
+      decimals: 2
+      min_rationale_words: 80
+
+  - id: SQL-055
+    title: p50 / p95 ingestion delay per source with ordered-set aggregates
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [event_ingestion_log]
+    output: [source_system, loaded_events, skewed_events_excluded, p50_delay_s, p95_delay_s]
+    prerequisites: []
+    tags: [percentiles, percentile_cont, ordered-set-aggregates, ingestion-latency, clock-skew, sla]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-056
+    title: Typed attributes from messy JSON without errors (amount, member flag, device)
+    difficulty: medium
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [customer_events]
+    output: [event_id, event_type, amount, is_member, device, has_amount_issue, amount_issue]
+    prerequisites: []
+    tags: [jsonb, type-safety, pg_input_is_valid, data-quality, schema-on-read, null-handling]
+    check:
+      ordered: false
+      decimals: 2
+
+  - id: SQL-057
+    title: Expand JSON item arrays into rows safely (arrays, objects, nulls, bad quantities)
+    difficulty: medium
+    estimated_minutes: 25
+    validation_mode: query
+    requires_database: true
+    tables: [customer_events]
+    output: [event_id, sku, total_qty]
+    prerequisites: [SQL-056]
+    tags: [jsonb, lateral, jsonb_array_elements, unnesting, data-quality, aggregation]
+    check:
+      ordered: false
+
+  - id: SQL-058
+    title: Calendar of sale-less days for a store (generate_series anti-join)
+    difficulty: easy
+    estimated_minutes: 15
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [sale_date, iso_weekday]
+    prerequisites: []
+    tags: [generate_series, calendar-table, anti-join, missing-dates, dates]
+    check:
+      ordered: false
+
+  - id: SQL-059
+    title: Partition pruning on a monthly range-partitioned fact table
+    difficulty: hard
+    estimated_minutes: 25
+    validation_mode: plan
+    requires_database: true
+    tables: [fact_sales_partitioned]
+    output: [store_id, line_count, net_sales]
+    prerequisites: [SQL-052]
+    tags: [partitioning, partition-pruning, explain, sargability, runtime-pruning, prepared-statements]
+    check:
+      ordered: false
+      decimals: 2
+      forbid_patterns:
+        - pattern: '\b(date_trunc|date_part|extract|to_char|to_date|to_timestamp)\s*\('
+          message: "do not apply a date function in the filter: compare the bare partition key sale_date with constant bounds"
+        - pattern: 'sale_date\s*::'
+          message: "do not cast sale_date (for example ::text): a cast on the partition key prevents pruning"
+        - pattern: '\bCAST\s*\(\s*(\w+\s*\.\s*)?sale_date\b'
+          message: "do not CAST sale_date: compare the bare partition key with constant bounds"
+        - pattern: '\bLIKE\b'
+          message: "do not filter the date with LIKE on text: compare sale_date with date bounds"
+        - pattern: 'fact_sales_p\d'
+          message: "query the parent table fact_sales_partitioned and let the planner prune: do not name a partition"
+      plan_expect:
+        - name: "the December 2025 partition fact_sales_p2025_12 is scanned"
+          pattern: 'fact_sales_p2025_12'
+          severity: required
+        - name: "no 2024 partition is scanned (pruned)"
+          pattern: 'fact_sales_p2024_\d\d'
+          absent: true
+          severity: required
+        - name: "no January-November 2025 partition is scanned (pruned)"
+          pattern: 'fact_sales_p2025_(0\d|1[01])'
+          absent: true
+          severity: required
+        - name: "the DEFAULT partition is not scanned (pruned)"
+          pattern: 'fact_sales_p_default'
+          absent: true
+          severity: required
+        - name: "exactly one partition is scanned: the plan has no Append node over several children"
+          pattern: '^\s*(->\s+)?(Parallel\s+)?Append\b'
+          absent: true
+          severity: advisory
+
+  - id: SQL-060
+    title: Deduplicate, enforce a unique key, then load idempotently with ON CONFLICT DO NOTHING
+    difficulty: hard
+    estimated_minutes: 30
+    validation_mode: mutation
+    requires_database: true
+    tables: [txn_events (sandbox), new_batch (sandbox)]
+    sandbox_tables: [txn_events, new_batch]
+    output: [txn_events]
+    prerequisites: [SQL-046]
+    tags: [deduplication, unique-constraint, on-conflict, idempotent-load, at-least-once, ctid]
+    check:
+      setup:
+        - |
+          CREATE TABLE txn_events AS
+          SELECT message_id, transaction_id, event_type, delivered_at, payload
+          FROM public.raw_transaction_events
+          WHERE delivery_id <= 10
+        - |
+          CREATE TABLE new_batch (
+              message_id     text        NOT NULL,
+              transaction_id bigint      NOT NULL,
+              event_type     text        NOT NULL,
+              delivered_at   timestamptz NOT NULL,
+              payload        jsonb       NOT NULL
+          )
+        - |
+          INSERT INTO new_batch VALUES
+              ('msg-fx-2301-c', 2301, 'CREATED', TIMESTAMPTZ '2025-10-20 10:30:00+00', '{"amount": "100.00", "status": "COMPLETED", "store_id": 1, "transaction_id": 2301}'),
+              ('msg-fx-2701-c', 2701, 'CREATED', TIMESTAMPTZ '2025-10-20 10:45:00+00', '{"amount": "55.00", "status": "COMPLETED", "store_id": 1, "transaction_id": 2701}'),
+              ('msg-fx-2702-c', 2702, 'CREATED', TIMESTAMPTZ '2025-10-20 11:05:00+00', '{"amount": "20.00", "status": "PENDING", "store_id": 1, "transaction_id": 2702}'),
+              ('msg-fx-2702-c', 2702, 'CREATED', TIMESTAMPTZ '2025-10-20 11:00:00+00', '{"amount": "20.00", "status": "PENDING", "store_id": 1, "transaction_id": 2702}')
+      verify: SELECT message_id, transaction_id, event_type, delivered_at, payload->>'amount' AS amount FROM txn_events
+      ordered: false
+      require_patterns:
+        - pattern: 'ON\s+CONFLICT'
+          message: "load the new batch with INSERT ... ON CONFLICT DO NOTHING"
+        - pattern: '\bUNIQUE\b|PRIMARY\s+KEY'
+          message: "enforce the key in the database: add a UNIQUE (or PRIMARY KEY) constraint / unique index on txn_events"

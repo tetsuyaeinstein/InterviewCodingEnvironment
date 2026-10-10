@@ -1,0 +1,60 @@
+# Fixtures: customer 9 first bought 2024-12-29 (cohort 2024-12, must not be in any 2025 cohort);
+# customer 22 has a PENDING purchase 2025-01-31 but first COMPLETED purchase 2025-02-01 (Feb cohort);
+# customer 53 first completed purchase 2025-02-28 23:59:59, next 2025-03-01 00:00:00 (Feb cohort, month 1);
+# customer 14 first purchase 2025-03-10 03:30 UTC (March cohort).
+assertions:
+  - name: "exactly 12 cohorts, 2025-01 .. 2025-12"
+    sql: >-
+      SELECT count(*) = 12 AND min(cohort_month) = DATE '2025-01-01' AND max(cohort_month) = DATE '2025-12-01'
+      FROM ({student}) s
+  - name: "cohort sizes are based on the first completed purchase EVER: 2025 cohorts total = customers whose first purchase is in 2025"
+    sql: >-
+      SELECT (SELECT sum(cohort_size) FROM ({student}) s)
+           = (SELECT count(*) FROM (SELECT customer_id FROM transactions
+                 WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                 GROUP BY customer_id
+                 HAVING min(transaction_ts) >= TIMESTAMPTZ '2025-01-01 00:00:00+00') x)
+  - name: "customer 9 (first purchase 2024-12-29) and customer 22 (pending 01-31) do not distort the January cohort size"
+    sql: >-
+      SELECT (SELECT cohort_size FROM ({student}) s WHERE cohort_month = DATE '2025-01-01')
+           = (SELECT count(*) FROM (SELECT customer_id FROM transactions
+                 WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                 GROUP BY customer_id
+                 HAVING min(transaction_ts) >= TIMESTAMPTZ '2025-01-01 00:00:00+00'
+                    AND min(transaction_ts) <  TIMESTAMPTZ '2025-02-01 00:00:00+00') x)
+  - name: "February cohort month-1 (March) count matches an independent EXISTS computation (customer 53 bought 2025-03-01 00:00:00)"
+    sql: >-
+      SELECT (SELECT month1_customers FROM ({student}) s WHERE cohort_month = DATE '2025-02-01')
+           = (SELECT count(*) FROM (SELECT customer_id FROM transactions
+                 WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                 GROUP BY customer_id
+                 HAVING min(transaction_ts) >= TIMESTAMPTZ '2025-02-01 00:00:00+00'
+                    AND min(transaction_ts) <  TIMESTAMPTZ '2025-03-01 00:00:00+00') c
+               WHERE EXISTS (SELECT 1 FROM transactions t
+                             WHERE t.customer_id = c.customer_id AND t.transaction_status = 'COMPLETED'
+                               AND t.transaction_ts >= TIMESTAMPTZ '2025-03-01 00:00:00+00'
+                               AND t.transaction_ts <  TIMESTAMPTZ '2025-04-01 00:00:00+00'))
+  - name: "month 2 means exactly two months later, not cumulative (March cohort, purchases in May)"
+    sql: >-
+      SELECT (SELECT month2_customers FROM ({student}) s WHERE cohort_month = DATE '2025-03-01')
+           = (SELECT count(*) FROM (SELECT customer_id FROM transactions
+                 WHERE transaction_status = 'COMPLETED' AND customer_id IS NOT NULL
+                 GROUP BY customer_id
+                 HAVING min(transaction_ts) >= TIMESTAMPTZ '2025-03-01 00:00:00+00'
+                    AND min(transaction_ts) <  TIMESTAMPTZ '2025-04-01 00:00:00+00') c
+               WHERE EXISTS (SELECT 1 FROM transactions t
+                             WHERE t.customer_id = c.customer_id AND t.transaction_status = 'COMPLETED'
+                               AND t.transaction_ts >= TIMESTAMPTZ '2025-05-01 00:00:00+00'
+                               AND t.transaction_ts <  TIMESTAMPTZ '2025-06-01 00:00:00+00'))
+  - name: "the December cohort cannot have month-1 or month-2 rates yet (NULL, not 0.00)"
+    row: {cohort_month: 2025-12-01}
+    count: 1
+    expect: {month1_rate: null, month2_rate: null}
+  - name: "the November cohort has an observable month 1 but no month-2 rate"
+    row: {cohort_month: 2025-11-01}
+    expect: {month2_rate: null}
+  - name: "rates are fractions rounded to 2 decimals and equal count / size"
+    sql: >-
+      SELECT bool_and(month1_rate IS NULL OR month1_rate = round(month1_customers::numeric / cohort_size, 2))
+         AND bool_and(month2_rate IS NULL OR month2_rate = round(month2_customers::numeric / cohort_size, 2))
+      FROM ({student}) s

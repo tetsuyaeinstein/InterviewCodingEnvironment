@@ -1,0 +1,31 @@
+# Customer 64 late-arrival fixtures vs the reporting cut-off daily_sales_report/ALL = 2026-01-01 00:00 UTC:
+# 6411 (12-20, ingested 12-30) on time; 6412 (12-28, 80.00, ingested 01-05) late;
+# 6413 (12-31 23:00, 90.00, ingested exactly 01-01 00:00) late; 6414 (12-24, 60.00, ingested 01-02) late.
+assertions:
+  - name: "2025-12-28 is reported with transaction 6412 (80.00) as its only late sale"
+    profile: small
+    row: {business_date: "2025-12-28"}
+    expect: {late_txn_count: 1, late_amount: 80.00}
+  - name: "2025-12-31 counts 6413 (90.00), which arrived exactly at the cut-off: late means >= the cut-off, not >"
+    sql: >-
+      SELECT s.late_txn_count = c.n AND s.late_amount = c.amt
+      FROM ({student}) s
+      CROSS JOIN (SELECT count(*) AS n, sum(gross_amount) AS amt
+                  FROM transactions
+                  WHERE transaction_status = 'COMPLETED'
+                    AND transaction_ts >= '2025-12-31 00:00:00+00' AND transaction_ts < '2026-01-01 00:00:00+00'
+                    AND ingested_at >= '2026-01-01 00:00:00+00') c
+      WHERE s.business_date = DATE '2025-12-31'
+  - name: "2025-12-24 is reported (6414 arrived on 2026-01-02)"
+    present: {business_date: "2025-12-24"}
+  - name: "2025-12-20 is not reported: 6411 arrived 10 days late but before the cut-off"
+    absent: {business_date: "2025-12-20"}
+  - name: "final_amount is the whole day (on-time + late sales), not just the late ones"
+    sql: "SELECT bool_and(late_amount + reported_amount = final_amount AND reported_amount > 0) FROM ({student}) s"
+  - name: "late_pct = late_amount / final_amount * 100, rounded to 2 decimals"
+    sql: "SELECT bool_and(late_pct = round(100 * late_amount / final_amount, 2)) FROM ({student}) s"
+  - name: "only December 2025 business dates, each once"
+    sql: >-
+      SELECT bool_and(business_date BETWEEN DATE '2025-12-01' AND DATE '2025-12-31')
+             AND count(*) = count(DISTINCT business_date)
+      FROM ({student}) s
