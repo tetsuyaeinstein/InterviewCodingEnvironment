@@ -1,0 +1,14 @@
+topic: 03_gaps_islands_time
+exercises:
+  - id: SQL-021
+    title: Five consecutive purchase days
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: query
+    requires_database: true
+    tables: [transactions]
+    output: [customer_id]
+    prerequisites: [SQL-011]
+    tags: [gaps-and-islands, window-functions, deduplication, dates, scale]
+    check:
+      ordered: false

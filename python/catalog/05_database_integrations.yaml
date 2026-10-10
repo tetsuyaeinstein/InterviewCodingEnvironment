@@ -1,0 +1,12 @@
+topic: 05_database_integrations
+exercises:
+  - id: PY-041
+    title: Parameterized customer transaction lookup with psycopg
+    difficulty: easy
+    estimated_minutes: 15
+    requires_database: true
+    requires_postgres: true
+    module: python/practice/05_database_integrations/PY-041.py
+    functions: [fetch_customer_transactions]
+    prerequisites: []
+    tags: [psycopg, parameterized-sql, sql-injection, date-ranges]

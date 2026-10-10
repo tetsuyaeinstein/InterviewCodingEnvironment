@@ -1,0 +1,12 @@
+topic: 02_algorithms
+exercises:
+  - id: PY-012
+    title: Longest window of distinct status codes (sliding window)
+    difficulty: medium
+    estimated_minutes: 15
+    requires_database: false
+    requires_postgres: false
+    module: python/practice/02_algorithms/PY-012.py
+    functions: [longest_unique_substring]
+    prerequisites: []
+    tags: [sliding-window, hashing, strings, two-pointers]

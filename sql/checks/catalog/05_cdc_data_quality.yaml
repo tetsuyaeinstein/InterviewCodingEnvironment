@@ -1,0 +1,45 @@
+topic: 05_cdc_data_quality
+exercises:
+  - id: SQL-046
+    title: Incremental upsert of a CDC batch with ON CONFLICT
+    difficulty: medium
+    estimated_minutes: 20
+    validation_mode: mutation
+    requires_database: true
+    tables: [txn_current (sandbox), stg_txn_batch (sandbox)]
+    sandbox_tables: [txn_current, stg_txn_batch]
+    output: [txn_current]
+    prerequisites: [SQL-041]
+    tags: [upsert, on-conflict, cdc, idempotency, deduplication]
+    check:
+      setup:
+        - |
+          CREATE TABLE txn_current (
+              source_system text          NOT NULL,
+              business_key  text          NOT NULL,
+              amount        numeric(12,2) NOT NULL,
+              status        text          NOT NULL,
+              source_lsn    bigint        NOT NULL,
+              PRIMARY KEY (source_system, business_key)
+          )
+        - |
+          INSERT INTO txn_current VALUES
+              ('POS',  'FX-0001',  55.00, 'PENDING',   9000020),
+              ('POS',  'FX-0004',  40.00, 'PENDING',   9000310),
+              ('POS',  'FX-0005',  10.00, 'PENDING',   9000410),
+              ('POS',  'FX-0010',  99.00, 'COMPLETED', 9999999),
+              ('ECOM', 'FX-0001', 500.00, 'PENDING',   9000010)
+        - |
+          CREATE TABLE stg_txn_batch AS
+          SELECT source_system, business_key,
+                 (payload->>'amount')::numeric(12,2) AS amount,
+                 payload->>'status'                   AS status,
+                 source_lsn
+          FROM public.cdc_transaction_events
+          WHERE business_key IN ('FX-0001', 'FX-0003', 'FX-0004', 'FX-0005', 'FX-0008', 'FX-0010')
+            AND operation IN ('I', 'U')
+      verify: SELECT source_system, business_key, amount, status, source_lsn FROM txn_current
+      ordered: false
+      require_patterns:
+        - pattern: "ON\\s+CONFLICT"
+          message: "use PostgreSQL's native upsert: INSERT ... ON CONFLICT ... DO UPDATE"

@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "data-engineering-interview-lab"
+version = "1.0.0"
+description = "Local, keyboard-first SQL + Python practice lab for senior data engineering interviews."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "psycopg[binary]>=3.2,<4",
+    "PyYAML>=6.0,<7",
+    "python-dotenv>=1.0,<2",
+    "tzdata>=2024.1",          # IANA zones for zoneinfo on Windows
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9",
+]
+
+[project.scripts]
+lab = "lab.cli:main"
+
+[tool.setuptools]
+packages = ["lab"]
+
+[tool.pytest.ini_options]
+markers = [
+    "requires_postgres: test needs the local lab PostgreSQL (docker compose up -d + lab db seed)",
+]
+addopts = "-p no:cacheprovider"
+# `python -m pytest` runs the lab's own self-tests. Exercise tests (python/tests) are run
+# through `python -m lab check PY-NNN` / `check-all` / `verify`, which select the implementation.
+testpaths = ["tests"]

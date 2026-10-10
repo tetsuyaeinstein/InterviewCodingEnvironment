@@ -1,0 +1,27 @@
+# Local-only PostgreSQL for the interview lab. Disposable; never point this at real data.
+name: de-interview-lab
+services:
+  postgres:
+    image: postgres:17
+    container_name: de-lab-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${LAB_DB_NAME:-interview_lab}
+      POSTGRES_USER: ${LAB_ADMIN_USER:-lab_admin}
+      POSTGRES_PASSWORD: ${LAB_ADMIN_PASSWORD:-lab_admin_local_only}
+      TZ: UTC
+      PGTZ: UTC
+    command: ["postgres", "-c", "timezone=UTC", "-c", "log_timezone=UTC", "-c", "shared_buffers=256MB", "-c", "max_wal_size=2GB"]
+    ports:
+      - "${LAB_DB_PORT:-5433}:5432"
+    volumes:
+      - de_lab_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LAB_ADMIN_USER:-lab_admin} -d ${LAB_DB_NAME:-interview_lab}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  de_lab_pgdata:

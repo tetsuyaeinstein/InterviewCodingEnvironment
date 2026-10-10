@@ -1,0 +1,22 @@
+# Local secrets / environment
+.env
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# Lab runtime artifacts
+.lab_tmp/
+study/session_notes/*
+!study/session_notes/.gitkeep
+study/attempt_history/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.idea/

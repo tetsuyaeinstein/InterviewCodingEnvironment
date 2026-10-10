@@ -1,0 +1,12 @@
+# Evaluated inside the sandbox after your statements ran (mutation mode).
+assertions:
+  - name: "POS FX-0001 ends at its highest LSN version (60.00 COMPLETED, lsn 9000030)"
+    sql: "SELECT amount = 60.00 AND status = 'COMPLETED' AND source_lsn = 9000030 FROM txn_current WHERE source_system = 'POS' AND business_key = 'FX-0001'"
+  - name: "stored FX-0010 (lsn 9999999) is newer than the batch and must not be overwritten"
+    sql: "SELECT amount = 99.00 AND source_lsn = 9999999 FROM txn_current WHERE source_system = 'POS' AND business_key = 'FX-0010'"
+  - name: "POS FX-0001 and ECOM FX-0001 stay two different rows"
+    sql: "SELECT count(*) = 2 FROM txn_current WHERE business_key = 'FX-0001'"
+  - name: "new keys FX-0003 and FX-0008 are inserted"
+    sql: "SELECT count(*) = 2 FROM txn_current WHERE source_system = 'POS' AND business_key IN ('FX-0003', 'FX-0008')"
+  - name: "no extra rows: exactly 7 keys after the batch"
+    sql: "SELECT count(*) = 7 FROM txn_current"
