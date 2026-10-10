@@ -1,0 +1,10 @@
+{
+  // Recommended (not auto-installed). VS Code shows a prompt; or install from the Extensions view.
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-azuretools.vscode-docker",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg"
+  ]
+}

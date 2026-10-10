@@ -127,7 +127,10 @@ def _resolve_file(ex: catalog.Exercise, file: str | None) -> Path:
 
 
 def cmd_run(args) -> int:
-    ex = _exercise(args.id)
+    if not args.id and not args.file:
+        print("Usage: python -m lab run SQL-NNN  (or --file path/to/SQL-NNN.sql)")
+        return 2
+    ex = _exercise(args.id or Path(args.file).name)
     if ex.lang != "sql":
         print(f"`run` executes SQL practice files. For Python use: python -m lab check {ex.id}")
         return 2
@@ -180,6 +183,9 @@ def check_one(ex: catalog.Exercise, file: Path | None, record: bool = True, verb
 def cmd_check(args) -> int:
     ident = args.id
     file = args.file
+    if not ident and not file:
+        print("Usage: python -m lab check <ID>  (or --file path/to/attempt)")
+        return 2
     if file and not ident:
         ident = Path(file).name
     ex = _exercise(ident)
@@ -643,8 +649,8 @@ def build_parser() -> argparse.ArgumentParser:
     h.set_defaults(func=cmd_hint)
 
     ru = sub.add_parser("run", help="execute your SQL practice file and show the result")
-    ru.add_argument("id")
-    ru.add_argument("--file", help="run a different file for this exercise")
+    ru.add_argument("id", nargs="?")
+    ru.add_argument("--file", help="run a different file for this exercise (ID inferred from the name if omitted)")
     ru.set_defaults(func=cmd_run)
 
     c = sub.add_parser("check", help="grade your practice attempt")

@@ -24,7 +24,7 @@ PY_TOPICS = ["01_fundamentals", "02_algorithms", "03_etl_file_processing",
              "04_streaming_reliability", "05_database_integrations"]
 DIFFICULTIES = ["easy", "medium", "hard"]
 SQL_MODES = {"query", "mutation", "plan", "modeling"}
-ID_RE = re.compile(r"\b(SQL|PY)[-_ ]?(\d{1,3})\b", re.IGNORECASE)
+ID_RE = re.compile(r"(?<![A-Za-z])(SQL|PY)[-_ ]?(\d{1,3})(?!\d)", re.IGNORECASE)
 
 
 class CatalogError(ValueError):

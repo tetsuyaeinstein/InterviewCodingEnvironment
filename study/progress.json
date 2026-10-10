@@ -9,7 +9,29 @@
      "status": "not_attempted"
     }
    ],
-   "logs": []
+   "logs": [
+    {
+     "at": "2026-10-10T15:58:02+00:00",
+     "confidence": 4,
+     "date": "2026-10-10",
+     "minutes": 12,
+     "notes": "felt ok"
+    },
+    {
+     "at": "2026-10-10T15:58:27+00:00",
+     "confidence": 4,
+     "date": "2026-10-10",
+     "minutes": 12,
+     "notes": "felt ok"
+    },
+    {
+     "at": "2026-10-10T15:58:51+00:00",
+     "confidence": 4,
+     "date": "2026-10-10",
+     "minutes": 12,
+     "notes": "felt ok"
+    }
+   ]
   },
   "PY-041": {
    "checks": [
@@ -33,6 +55,24 @@
     {
      "at": "2026-10-10T15:42:41+00:00",
      "elapsed_s": 0.0,
+     "source": "check",
+     "status": "not_attempted"
+    },
+    {
+     "at": "2026-10-10T15:58:02+00:00",
+     "elapsed_s": 0.1,
+     "source": "check",
+     "status": "not_attempted"
+    },
+    {
+     "at": "2026-10-10T15:58:27+00:00",
+     "elapsed_s": 0.1,
+     "source": "check",
+     "status": "not_attempted"
+    },
+    {
+     "at": "2026-10-10T15:58:51+00:00",
+     "elapsed_s": 0.1,
      "source": "check",
      "status": "not_attempted"
     }
