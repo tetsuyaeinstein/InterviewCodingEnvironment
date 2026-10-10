@@ -1,16 +1,4 @@
 {
- "exercises": {
-  "SQL-001": {
-   "checks": [
-    {
-     "at": "2026-10-10T22:55:16+00:00",
-     "elapsed_s": 0.1,
-     "source": "check",
-     "status": "not_attempted"
-    }
-   ],
-   "logs": []
-  }
- },
+ "exercises": {},
  "version": 1
 }

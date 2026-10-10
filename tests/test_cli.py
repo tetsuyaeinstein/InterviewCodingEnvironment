@@ -109,7 +109,7 @@ def test_progress_log_and_reset_attempts_preserve_history(tmp_path, monkeypatch,
     original = ex.practice_path.read_bytes()
     monkeypatch.setattr(cli, "STUDY_DIR", tmp_path)
     try:
-        ex.practice_path.write_text(original + "\n# my attempt\n", encoding="utf-8")
+        ex.practice_path.write_bytes(original + b"\n# my attempt\n")
         code, _ = run(capsys, "reset-attempts", "PY-012")
         assert code == 2 and "my attempt" in ex.practice_path.read_text(encoding="utf-8")  # dry run
         progress.log_session("PY-012", 12, 4, "felt ok")

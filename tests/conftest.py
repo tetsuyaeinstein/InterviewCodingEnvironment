@@ -16,7 +16,7 @@ def seeded_conn():
     """Read-only practice connection to a seeded lab database, or skip."""
     from lab import db
     try:
-        conn = db.connect("practice")
+        conn = db.connect("practice", autocommit=True)  # never hold a transaction (it would block re-seeds)
     except db.LabDBError as e:
         pytest.skip(f"lab database not reachable: {str(e).splitlines()[0]}")
     info = db.seed_info(conn)
