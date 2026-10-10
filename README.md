@@ -49,6 +49,77 @@ python -m lab db status
 
 `make` is optional (`make up seed check ID=SQL-021`). The Python CLI is the canonical interface.
 
+## How to practice: a step-by-step guide
+
+The goal is **fast, reliable muscle memory**: typing correct SQL and Python from a blank file, under
+a clock, while explaining your thinking, as in a real interview.
+
+### A 45-minute session
+
+1. **Warm-up (10 min).** Open a scratch file (`study/session_notes/warmup.sql` or `.py`) and retype,
+   from memory and without copy/paste, the week's key patterns listed in `study/8_WEEK_PLAN.md`
+   (for example a `ROW_NUMBER() OVER (PARTITION BY ...)` filter, a `LEFT JOIN ... GROUP BY`, a
+   `heapq` top-k, a `csv.DictReader` loop).
+2. **Pick today's problems.** Run `python -m lab session --minutes 45 --mix sql,python`. It lists due
+   reviews first, then unfinished attempts, then new exercises in curriculum order. Or choose your
+   own with `python -m lab list sql --difficulty medium` / `python -m lab list python --topic algorithms`.
+3. **Read the question** with `python -m lab show <ID>`. It shows only the question, never hints or
+   answers. The listed time (for example "~20 min") is the realistic interview time: start a timer.
+4. **Clarify out loud, before typing.** Say what one output row means (the grain), and how you'll treat
+   NULLs, ties, duplicates, time zones and boundaries. The question text lists the edge cases to
+   handle, and `study/INTERVIEW_PLAYBOOK.md` has the full checklist. Interviewers grade this as much as the code.
+5. **Type your answer from scratch** in the practice file (`sql/practice/<topic>/SQL-NNN.sql` or
+   `python/practice/<topic>/PY-NNN.py`). Do not open `solutions/` or `explanations/`. SQL files have a
+   marked answer area. Python files are stubs with the signature and `raise NotImplementedError`.
+6. **Run it.** For SQL, `python -m lab run <ID>` executes your file and shows the rows, or the database
+   error with its line and column. For Python there is no separate run: use `check`.
+7. **Check it.** `python -m lab check <ID>` (or **Ctrl+Shift+B** in VS Code on the open file). Read the
+   feedback carefully:
+   - *Missing rows / unexpected rows*: your logic is wrong for those keys. Look them up in
+     `database/DATA_DICTIONARY.md`: most fixture customers and stores are explained there.
+   - *Edge-case checks failed*: a named case (for example "customer 6: 6 purchases on only 4 days")
+     broke your solution. The name describes the case, not the fix.
+   - *Failing tests* (Python): the test name and assertion show the input that failed.
+   Fix, re-check, repeat. `NOT ATTEMPTED` means the stub is untouched.
+8. **Stuck for more than ~10 minutes?** Use `python -m lab hint <ID> --level 1`, then 2, then 3. Each is
+   more specific. Using a hint is fine, but log a lower confidence afterwards.
+9. **After it passes, compare.** `python -m lab solution <ID> --explain` shows the reference solution
+   and the explanation (approach, edge cases, indexes, SQL Server/Synapse notes, scale-up).
+   `--alt` shows a genuinely different second approach where one exists. Then answer one of the
+   follow-up questions at the end of the explanation **out loud**: "what would change at 500
+   million rows?" is a favourite interview question.
+10. **Log it.** `python -m lab progress log <ID> --minutes 18 --confidence 4 --notes "forgot DISTINCT first"`.
+    Slow or low-confidence exercises come back sooner (see `study/PROGRESS.md`).
+
+### Tips that make the practice work
+
+- **Type everything.** Never paste from the solution. Retype it the next day if you want it in your fingers.
+- **Be honest about time.** An answer that passes after 50 minutes on a 20-minute problem is still a
+  weak spot: log the real minutes and redo it in a few days.
+- **Retry from a blank file.** `python -m lab reset-attempts <ID> --keep-history --confirm` restores
+  the empty stub and keeps a copy of your old attempt in `study/attempt_history/`.
+- **Use the real tools.** For SQL, explore the tables with SQLTools in VS Code, or
+  `python -m lab run` a throwaway query, before writing the answer. In interviews you will usually be
+  allowed to look at the data.
+- **Plan-mode SQL exercises** (EXPLAIN, indexes, partition pruning, SQL-051 to SQL-059) print the real
+  query plan and a checklist. Read the plan aloud node by node, then tick the checklist
+  honestly: the automated check only covers objective facts.
+- **Try medium data for performance questions:** `python -m lab db seed --size medium` makes plans and
+  index choices behave more like production (switch back with `--size small` for the fastest checks).
+- **Test yourself against wrong answers.** After you pass, try breaking your own solution
+  (change `<` to `<=`, drop a `DISTINCT`) and predict which check fails.
+
+### What to practice when
+
+- **Following a plan:** `study/8_WEEK_PLAN.md` gives day-by-day exercise IDs, a weekly timed mock and
+  checkpoints, starting with SQL foundations and Python dict/list basics and ending with mock interviews.
+- **Short on time (a few days):** run `python -m lab list sql --difficulty hard` and
+  `python -m lab list python --difficulty hard`; focus on streaks (SQL-021 to 024), SCD2 (SQL-031 to 033),
+  CDC/incremental loads (SQL-041, 046, 047), idempotency (SQL-048, PY-032) and
+  streaming/memory problems (PY-021, 029, 035).
+- **Before a real interview:** do one 45-minute mock cold (for example SQL-011 plus PY-014), then read
+  `study/INTERVIEW_PLAYBOOK.md` sections 1 to 4 once.
+
 ## Daily practice loop
 
 ```bash
