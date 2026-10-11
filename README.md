@@ -12,6 +12,7 @@ problems:
 Nothing leaves your machine: no cloud, no accounts, and all data is synthetic.
 
 > New here? **[QUICKSTART.md](QUICKSTART.md)** gets you from clone to first exercise in about 5 minutes.
+> Practising day to day? **[PRACTICE_GUIDE.md](PRACTICE_GUIDE.md)** has the step-by-step routine, how time and progress work, and how to manage the environment.
 
 ## Setup
 

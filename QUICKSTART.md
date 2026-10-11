@@ -54,4 +54,4 @@ In VS Code:
 - Open a practice file and press **Ctrl+Shift+B** to check it.
 - Use *Terminal → Run Task…* for everything else.
 
-The study plan is in `study/8_WEEK_PLAN.md`.
+The study plan is in `study/8_WEEK_PLAN.md`. For the full daily routine, how time is (and is not) measured, and environment management, see `PRACTICE_GUIDE.md`.
