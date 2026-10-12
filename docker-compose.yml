@@ -1,5 +1,5 @@
 # Local-only PostgreSQL for the interview lab. Disposable; never point this at real data.
-name: de-interview-lab
+name: de-lab
 services:
   postgres:
     image: postgres:17
