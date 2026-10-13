@@ -603,6 +603,10 @@ def _dev_lint(ids: list[str] | None = None) -> int:
             q = ex.question_path.read_text(encoding="utf-8")
             if re.search(r"```\s*sql", q, re.I) and ex.lang == "sql":
                 issues.append(f"{ex.id}: question contains a ```sql block (possible answer leak)")
+            if not re.search(r"(?m)^## In plain words\s*$", q):
+                issues.append(f"{ex.id}: question has no '## In plain words' section (interviewer-style summary)")
+            elif not re.search(r"(?m)^\*\*You return:\*\*", re.split(r"(?m)^## ", q.split("## In plain words", 1)[1], maxsplit=1)[0]):
+                issues.append(f"{ex.id}: the 'In plain words' section needs a '**You return:**' line")
             if re.search(r"(?m)^#+\s*Hint", q):
                 issues.append(f"{ex.id}: question contains hints (move them to {rel(ex.hint_path)})")
         if ex.lang == "sql" and ex.stub_path.exists() and not is_blank(ex.stub_path.read_text(encoding="utf-8")):

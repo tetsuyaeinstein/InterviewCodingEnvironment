@@ -172,6 +172,23 @@ assertions:
 
 - Start from a **business requirement**: who needs it and why. Do not name the technique
   ("use a window function", "use a heap").
+- **Open every question with a `## In plain words` section** (directly after the title/meta line, before the
+  business context). It is what the interviewer would actually *say*, plus the essentials, so the learner can
+  grasp the task in 15 seconds even under pressure. Format (see SQL-003):
+
+  ```markdown
+  ## In plain words
+
+  > "<1-3 spoken sentences, the way an interviewer would phrase it; no jargon beyond the domain words>"
+
+  **You return:** <grain, then the columns/return value (SQL: one row per ...; Python: what the function returns)>
+
+  **The fine print, in short:**
+  - <up to 3 bullets restating the rules that are easy to miss: statuses, dates/zones, ties, NULLs, inclusive/exclusive>
+  ```
+
+  It must agree exactly with the precise requirements below it, never name the technique (no "use a window
+  function / heap / LATERAL"), and stay under about 10 lines. `lab dev lint` fails if it is missing.
 - Pin down semantics explicitly:
   - grain;
   - which statuses count;

@@ -1,4 +1,162 @@
 {
- "exercises": {},
+ "exercises": {
+  "SQL-001": {
+   "checks": [
+    {
+     "at": "2026-10-11T14:58:52+00:00",
+     "elapsed_s": 0.16,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-11T16:35:35+00:00",
+     "elapsed_s": 0.29,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-11T16:41:30+00:00",
+     "elapsed_s": 0.0,
+     "source": "check",
+     "status": "error"
+    },
+    {
+     "at": "2026-10-11T16:41:40+00:00",
+     "elapsed_s": 0.29,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-11T16:42:46+00:00",
+     "elapsed_s": 0.3,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-11T16:43:08+00:00",
+     "elapsed_s": 0.05,
+     "source": "check",
+     "status": "error"
+    },
+    {
+     "at": "2026-10-11T16:43:29+00:00",
+     "elapsed_s": 0.31,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-11T16:44:40+00:00",
+     "elapsed_s": 0.29,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-11T16:45:52+00:00",
+     "elapsed_s": 0.42,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-11T16:47:21+00:00",
+     "elapsed_s": 0.3,
+     "source": "check",
+     "status": "failed"
+    }
+   ],
+   "first_passed_at": "2026-10-11T16:41:40+00:00",
+   "logs": []
+  },
+  "SQL-002": {
+   "checks": [
+    {
+     "at": "2026-10-12T22:31:51+00:00",
+     "elapsed_s": 0.0,
+     "source": "check",
+     "status": "not_attempted"
+    },
+    {
+     "at": "2026-10-12T22:41:50+00:00",
+     "elapsed_s": 0.0,
+     "source": "check",
+     "status": "error"
+    },
+    {
+     "at": "2026-10-12T22:42:28+00:00",
+     "elapsed_s": 0.21,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-12T22:43:03+00:00",
+     "elapsed_s": 0.24,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-13T04:18:17+00:00",
+     "elapsed_s": 0.36,
+     "source": "check",
+     "status": "passed"
+    }
+   ],
+   "first_passed_at": "2026-10-12T22:43:03+00:00",
+   "logs": [
+    {
+     "at": "2026-10-12T22:44:03+00:00",
+     "confidence": 4,
+     "date": "2026-10-12",
+     "minutes": 11.0
+    }
+   ]
+  },
+  "SQL-003": {
+   "checks": [
+    {
+     "at": "2026-10-13T04:47:04+00:00",
+     "elapsed_s": 0.23,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T04:48:57+00:00",
+     "elapsed_s": 0.19,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T04:53:26+00:00",
+     "elapsed_s": 0.06,
+     "source": "check",
+     "status": "error"
+    },
+    {
+     "at": "2026-10-13T04:53:40+00:00",
+     "elapsed_s": 0.2,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T04:55:52+00:00",
+     "elapsed_s": 0.19,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T04:56:48+00:00",
+     "elapsed_s": 0.18,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-13T05:04:21+00:00",
+     "elapsed_s": 0.26,
+     "source": "check",
+     "status": "passed"
+    }
+   ],
+   "first_passed_at": "2026-10-13T04:56:48+00:00",
+   "logs": []
+  }
+ },
  "version": 1
 }

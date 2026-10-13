@@ -26,7 +26,8 @@ def _now() -> datetime:
     return datetime.now(timezone.utc).replace(microsecond=0)
 
 
-def load(path: Path = PROGRESS_FILE) -> dict:
+def load(path: Path | None = None) -> dict:
+    path = path or PROGRESS_FILE  # resolved at call time so tests can redirect the file
     if not path.exists():
         return {"version": 1, "exercises": {}}
     try:
@@ -40,7 +41,8 @@ def load(path: Path = PROGRESS_FILE) -> dict:
     return data
 
 
-def save(data: dict, path: Path = PROGRESS_FILE) -> None:
+def save(data: dict, path: Path | None = None) -> None:
+    path = path or PROGRESS_FILE
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps(data, indent=1, sort_keys=True) + "\n", encoding="utf-8")

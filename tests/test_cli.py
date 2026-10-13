@@ -127,3 +127,13 @@ def test_python_check_reports_not_attempted_for_stub(isolated_progress):
     from lab import py_checker
     res = py_checker.check(exercise_catalog.get("PY-012"), "practice", exercise_catalog.get("PY-012").stub_path)
     assert res.status == "not_attempted"
+
+
+def test_isolated_progress_never_touches_the_real_file(isolated_progress):
+    """Regression: load()/save() once bound the real path at import time, so tests wrote to it."""
+    real = progress.STUDY_DIR / "progress.json"
+    before = real.read_bytes() if real.exists() else None
+    progress.record_check("SQL-001", "not_attempted", 0.1)
+    progress.log_session("SQL-001", 5, 3, "isolation test")
+    assert isolated_progress.exists()
+    assert (real.read_bytes() if real.exists() else None) == before
