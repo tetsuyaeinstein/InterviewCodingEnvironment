@@ -17,8 +17,13 @@ PY_ROOT = Path(__file__).resolve().parents[1]
 
 def _find(exercise_id: str, impl: str) -> Path:
     override = os.environ.get("LAB_IMPL_FILE")
-    if override and exercise_id.upper() in Path(override).stem.upper().replace("_", "-"):
-        return Path(override)
+    if override:
+        # `lab check <ID> --file <path>` runs exactly one exercise's tests, so the override applies
+        # whatever the file is called (a scratch file such as my_try.py must not be silently ignored).
+        path = Path(override)
+        if not path.exists():
+            raise FileNotFoundError(f"--file {override} does not exist")
+        return path
     if impl == "practice":
         folder, name = "practice", f"{exercise_id}.py"
     elif impl == "solution":

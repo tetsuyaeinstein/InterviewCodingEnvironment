@@ -10,6 +10,48 @@
 
 -- >>> Write your answer below this line >>>
 
+-- select *
+-- from raw_transaction_events;
 
+-- select transaction_id, count(distinct message_id)
+-- from raw_transaction_events
+-- group by transaction_id
+
+-- ; with transactions as (
+--     select transaction_id
+--     from raw_transaction_events
+--     where event_type = 'CREATED'
+--     group by transaction_id
+--     having count(1) >= 2
+-- )
+select rte.transaction_id
+    , count(1) deliveries
+    , count(distinct message_id) as distinct_messages
+    , count(distinct message_id) filter (where event_type = 'CREATED') as created_messages
+    , count(distinct message_id) filter (where event_type = 'STATUS_CHANGED') as status_change_messages
+    , count(1) > count(distinct message_id) as has_redelivery
+    , CASE
+        when count(distinct message_id) filter (where event_type = 'CREATED') >= 2 and count(distinct payload) filter (where event_type = 'CREATED') >= 2 then 'CONFLICTING_DUPLICATE'
+        when count(distinct message_id) filter (where event_type = 'CREATED') >= 2 and count(distinct payload) filter (where event_type = 'CREATED') = 1 then 'BUSINESS_KEY_DUPLICATE'
+        when count(distinct message_id) >= 2 then 'LIFECYCLE_EVENTS'
+        else 'REDELIVERY_ONLY'
+    END as classification
+from raw_transaction_events rte
+-- on t.transaction_id = rte.transaction_id
+-- where rte.transaction_id = 120196
+-- where rte.message_id = 'msg-119140-c'
+group by rte.transaction_id
+having count(1) >= 2
+
+
+select *
+from raw_transaction_events
+where transaction_id = 119292
+
+select '{"a":1,"b":2}'::jsonb = '{"b":2,"a":1}'::jsonb
+
+-- select *
+-- from raw_transaction_events
+-- where transaction_id = 120196
 
 -- <<< end of answer <<<

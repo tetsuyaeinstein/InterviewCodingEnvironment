@@ -47,4 +47,44 @@ SELECT d.transaction_id,
        END AS classification
 FROM delivery_counts d
 JOIN per_txn p USING (transaction_id)
-LEFT JOIN conflicts c USING (transaction_id);
+LEFT JOIN conflicts c USING (transaction_id)
+where d.transaction_id = 119140
+;
+
+
+-- select *
+-- from raw_transaction_events
+-- order by message_id
+
+-- select message_id, count(1)
+-- from raw_transaction_events
+-- group by message_id
+-- order by message_id
+
+-- select *
+-- from raw_transaction_events
+-- where message_id = 'msg-119140-c';
+
+-- SELECT DISTINCT ON (message_id)
+--         message_id, transaction_id, event_type, payload
+-- FROM raw_transaction_events
+-- WHERE transaction_id = 119140
+-- ORDER BY message_id, delivery_id ;     -- keep the first delivery of each message
+
+; with data as (
+
+    select 1 as transaction_id, 11 as message_id, 'A' as payload union ALL
+    select 1 as transaction_id, 12 as message_id, 'B' as payload union all
+    select 1 as transaction_id, 13 as message_id, 'C' as payload
+)
+
+select *--distinct d1.transaction_id
+from data d1
+join data d2
+on d1.transaction_id = d2.transaction_id
+and d2.message_id > d1.message_id
+where d1.payload is distinct from d2.payload
+
+SELECT 1 = NULL;        -- NULL (unknown), not false
+SELECT NULL = NULL;     -- NULL, not true
+SELECT 1 <> NULL;       -- NULL, not true

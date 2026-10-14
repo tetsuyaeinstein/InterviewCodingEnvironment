@@ -152,9 +152,147 @@
      "elapsed_s": 0.26,
      "source": "check",
      "status": "passed"
+    },
+    {
+     "at": "2026-10-13T15:26:39+00:00",
+     "elapsed_s": 0.26,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T15:32:10+00:00",
+     "elapsed_s": 0.21,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-13T15:50:03+00:00",
+     "elapsed_s": 0.38,
+     "source": "check",
+     "status": "passed"
     }
    ],
    "first_passed_at": "2026-10-13T04:56:48+00:00",
+   "logs": []
+  },
+  "SQL-004": {
+   "checks": [
+    {
+     "at": "2026-10-13T22:12:52+00:00",
+     "elapsed_s": 0.0,
+     "source": "check",
+     "status": "error"
+    },
+    {
+     "at": "2026-10-13T22:13:09+00:00",
+     "elapsed_s": 0.28,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T22:16:02+00:00",
+     "elapsed_s": 0.2,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T22:23:34+00:00",
+     "elapsed_s": 0.26,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T22:31:42+00:00",
+     "elapsed_s": 0.24,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T22:44:54+00:00",
+     "elapsed_s": 0.4,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-13T23:11:24+00:00",
+     "elapsed_s": 0.28,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T23:12:08+00:00",
+     "elapsed_s": 0.19,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-13T23:14:44+00:00",
+     "elapsed_s": 0.37,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-13T23:47:01+00:00",
+     "elapsed_s": 0.23,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T23:47:10+00:00",
+     "elapsed_s": 0.13,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-13T23:47:21+00:00",
+     "elapsed_s": 0.17,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-13T23:59:23+00:00",
+     "elapsed_s": 0.33,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-14T00:00:35+00:00",
+     "elapsed_s": 0.18,
+     "source": "check",
+     "status": "passed"
+    }
+   ],
+   "first_passed_at": "2026-10-13T22:44:54+00:00",
+   "logs": []
+  },
+  "SQL-005": {
+   "checks": [
+    {
+     "at": "2026-10-14T17:50:23+00:00",
+     "elapsed_s": 0.37,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-14T17:53:03+00:00",
+     "elapsed_s": 0.3,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-14T17:55:41+00:00",
+     "elapsed_s": 0.32,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-14T19:27:03+00:00",
+     "elapsed_s": 0.49,
+     "source": "check",
+     "status": "passed"
+    }
+   ],
+   "first_passed_at": "2026-10-14T17:55:41+00:00",
    "logs": []
   }
  },

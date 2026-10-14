@@ -10,42 +10,55 @@
 
 -- >>> Write your answer below this line >>>
 
--- select c.customer_id
---     , lt.last_completed_purchase_date
--- from customers c
--- left join (
---     select customer_id
---         , max(transaction_ts AT Time ZONe 'UTC')::date as last_completed_purchase_date
---     from transactions
---     where transaction_ts AT time zone 'UTC' >= '2025-10-03 00:00:00+00'::timestamptz
---     and transaction_ts AT time zone 'UTC' < '2026-01-01 00:00:00+00'::timestamptz
---     and transaction_status = 'COMPLETED'
---     group by customer_id
--- ) lt
--- on lt.customer_id = c.customer_id
+-- select *
+-- from transactions;
 
-WITH per_customer AS (
-    SELECT c.customer_id,
-           MAX(t.transaction_ts) AS last_completed_ts,
-           COUNT(t.transaction_id) FILTER (
-               WHERE t.transaction_ts >= TIMESTAMPTZ '2025-10-03 00:00:00+00'
-           )                     AS completed_in_window
-    FROM customers c
-    LEFT JOIN transactions t
-           ON t.customer_id = c.customer_id
-          AND t.transaction_status = 'COMPLETED'                      -- in ON, so customers without purchases survive
-          AND t.transaction_ts < TIMESTAMPTZ '2026-01-01 00:00:00+00'  -- nothing after the anchor date counts
-    GROUP BY c.customer_id
+with last_90_days as (
+    select c.customer_id
+        , max(t.transaction_ts) as last_purchased_date
+        , count(*) filter (
+            where t.transaction_ts >= '2025-10-03 00:00:00+00'::timestamptz
+        ) as completed_txs_in_period
+    from customers c
+    left join transactions t
+    on c.customer_id = t.customer_id
+        AND t.transaction_ts < '2026-01-01 00:00:00+00'::timestamptz
+        and t.transaction_status = 'COMPLETED'
+    group by c.customer_id
 )
-SELECT customer_id,
-       (last_completed_ts AT TIME ZONE 'UTC')::date AS last_completed_purchase_date   -- NULL if never purchased
-FROM per_customer
-WHERE completed_in_window = 0;
+
+select customer_id
+    , (last_purchased_date AT TIME ZONE 'UTC')::date last_completed_purchase_date
+from last_90_days
+where completed_txs_in_period = 0
+order by customer_id;
 
 -- select *
 -- from transactions
--- where customer_id = 35
--- order by transaction_ts desc;
+-- where customer_id = 31;
 
+-- select c.customer_id
+--     , t.transaction_ts
+-- from customers c
+-- left join transactions t
+-- on c.customer_id = t.customer_id
+--     AND t.transaction_ts < '2026-01-01 00:00:00+00'::timestamptz
+--     and t.transaction_status = 'COMPLETED'
+-- where c.customer_id = 35;
+
+-- select c.customer_id
+--     , max(t.transaction_ts) as last_purchased_date
+--     , count(*) filter (
+--         where t.transaction_ts >= '2025-10-03 00:00:00+00'::timestamptz
+--     ) as completed_txs_in_period
+-- from customers c
+-- left join transactions t
+-- on c.customer_id = t.customer_id
+--     AND t.transaction_ts < '2026-01-01 00:00:00+00'::timestamptz
+--     and t.transaction_status = 'COMPLETED'
+-- where c.customer_id = 35
+-- group by c.customer_id;
+
+-- select count(null)
 
 -- <<< end of answer <<<

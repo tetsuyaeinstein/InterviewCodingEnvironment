@@ -137,3 +137,15 @@ def test_isolated_progress_never_touches_the_real_file(isolated_progress):
     progress.log_session("SQL-001", 5, 3, "isolation test")
     assert isolated_progress.exists()
     assert (real.read_bytes() if real.exists() else None) == before
+
+
+def test_python_check_honours_a_file_with_any_name(tmp_path, isolated_progress):
+    """Regression: `--file my_try.py` used to be silently ignored (graded the empty stub instead)."""
+    from lab import py_checker
+    ex = exercise_catalog.get("PY-012")
+    scratch = tmp_path / "my_scratch_attempt.py"
+    scratch.write_bytes(ex.solution_path().read_bytes())
+    assert py_checker.check(ex, "practice", scratch).status == "passed"
+    bad = tmp_path / "another_name.py"
+    bad.write_text("def longest_unique_substring(s):\n    return s\n", encoding="utf-8")
+    assert py_checker.check(ex, "practice", bad).status == "failed"
