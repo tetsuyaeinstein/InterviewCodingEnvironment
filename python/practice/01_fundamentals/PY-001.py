@@ -5,8 +5,21 @@ Check   : python -m lab check PY-001
 """
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Iterator
 from typing import Any
+
+
+def __iter_records(records: Iterable[Mapping[str, Any]]) -> Iterator[Mapping[str, Any]]:
+    seen: set[Any] = set()
+
+    for dict in records:
+        id = dict.get("transaction_id")
+        if id is None:
+            yield dict
+            continue
+        if id not in seen:
+            seen.add(id)
+            yield dict
 
 
 def dedupe_transactions(records: Iterable[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
@@ -16,4 +29,22 @@ def dedupe_transactions(records: Iterable[Mapping[str, Any]]) -> list[Mapping[st
     preserved. Records with a missing or None ``transaction_id`` are always kept.
     The original record objects are returned; the input is not mutated.
     """
-    raise NotImplementedError
+    # raise NotImplementedError
+
+    # return list(__iter_records(records))
+
+    seen = set()
+    deduped = []
+
+    for item in records:
+        key = item.get("transaction_id")
+        if key is None:
+            deduped.append(item)
+            continue
+
+        if key not in seen:
+            # print(key)
+            seen.add(key)
+            deduped.append(item)
+
+    return deduped
