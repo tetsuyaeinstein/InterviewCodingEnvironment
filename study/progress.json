@@ -138,6 +138,192 @@
    "first_passed_at": "2026-10-15T06:15:17+00:00",
    "logs": []
   },
+  "PY-002": {
+   "checks": [
+    {
+     "at": "2026-10-16T17:16:21+00:00",
+     "elapsed_s": 1.68,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:16:58+00:00",
+     "elapsed_s": 1.1,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:22:39+00:00",
+     "elapsed_s": 1.4,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:24:53+00:00",
+     "elapsed_s": 1.69,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:26:20+00:00",
+     "elapsed_s": 1.23,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:27:53+00:00",
+     "elapsed_s": 2.01,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:30:51+00:00",
+     "elapsed_s": 1.82,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:31:58+00:00",
+     "elapsed_s": 3.3,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:33:38+00:00",
+     "elapsed_s": 1.93,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:34:10+00:00",
+     "elapsed_s": 2.84,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:35:18+00:00",
+     "elapsed_s": 1.57,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:54:15+00:00",
+     "elapsed_s": 2.05,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:54:56+00:00",
+     "elapsed_s": 1.41,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:56:35+00:00",
+     "elapsed_s": 1.81,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T17:58:00+00:00",
+     "elapsed_s": 2.04,
+     "source": "check",
+     "status": "error"
+    },
+    {
+     "at": "2026-10-16T17:58:15+00:00",
+     "elapsed_s": 1.54,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:00:28+00:00",
+     "elapsed_s": 1.16,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:01:11+00:00",
+     "elapsed_s": 1.45,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-16T18:02:30+00:00",
+     "elapsed_s": 1.19,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:04:16+00:00",
+     "elapsed_s": 2.04,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:08:05+00:00",
+     "elapsed_s": 1.27,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:12:45+00:00",
+     "elapsed_s": 1.55,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:13:45+00:00",
+     "elapsed_s": 2.27,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:15:16+00:00",
+     "elapsed_s": 1.25,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:16:08+00:00",
+     "elapsed_s": 1.29,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:17:58+00:00",
+     "elapsed_s": 1.23,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:18:25+00:00",
+     "elapsed_s": 1.27,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:23:03+00:00",
+     "elapsed_s": 1.3,
+     "source": "check",
+     "status": "failed"
+    },
+    {
+     "at": "2026-10-16T18:23:23+00:00",
+     "elapsed_s": 0.94,
+     "source": "check",
+     "status": "passed"
+    },
+    {
+     "at": "2026-10-16T18:23:52+00:00",
+     "elapsed_s": 1.21,
+     "source": "check",
+     "status": "failed"
+    }
+   ],
+   "first_passed_at": "2026-10-16T18:01:11+00:00",
+   "logs": []
+  },
   "SQL-001": {
    "checks": [
     {

@@ -6,9 +6,8 @@ Check   : python -m lab check PY-002
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from decimal import Decimal
+from decimal import Decimal, ROUND_UP
 from typing import Any
-
 
 def total_spend_by_customer(transactions: Iterable[Mapping[str, Any]],
                             include_guests: bool = False) -> dict[Any, Decimal]:
@@ -19,4 +18,4 @@ def total_spend_by_customer(transactions: Iterable[Mapping[str, Any]],
     Guests (customer_id None) are excluded unless include_guests=True (key None).
     Totals are summed exactly and rounded once, half-up.
     """
-    raise NotImplementedError
+    # raise NotImplementedError

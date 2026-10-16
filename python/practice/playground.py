@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 def is_valid(s):
     pairs = {
         ")":"(",
@@ -36,3 +38,20 @@ print(list(a.values()))
 
 print(str(1001))
 print(str("1001"))
+
+# print(0.00015.f)
+# print(Decimal("0.00015"))
+# print(Decimal(None))
+# print(float(True))
+
+print(isinstance("0.00015", str))
+print(isinstance("0.00015c", str))
+print(isinstance(None, str))
+
+print(round(Decimal("10"),2))
+
+print(Decimal("NaN").is_finite())
+print(Decimal("Infinity").is_finite())
+
+print(Decimal(1/3))
+print(float(1/3))
